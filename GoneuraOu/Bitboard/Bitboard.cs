@@ -111,5 +111,11 @@ namespace GoneuraOu.Bitboard
         {
             return BitOperations.PopCount(board);
         }
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int Lsb1(this uint board)
+        {
+            return BitOperations.TrailingZeroCount(board);
+        }
     }
 }

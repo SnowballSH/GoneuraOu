@@ -5,9 +5,24 @@ namespace GoneuraOu.Logic
 {
     public static class Attacks
     {
+        /// --$--
+        /// --P--
+        /// -----
         public static readonly uint[,] PawnAttacks;
+
+        /// -$$$-
+        /// -$K$-
+        /// -$$$-
         public static readonly uint[] KingAttacks;
+
+        /// -$$$-
+        /// -$G$-
+        /// --$--
         public static readonly uint[] GoldAttacks;
+
+        /// -$$$-
+        /// --S--
+        /// -$-$-
         public static readonly uint[] SilverAttacks;
 
         private static uint GeneratePawnAttacks(int square, Turn turn)
@@ -112,6 +127,156 @@ namespace GoneuraOu.Logic
             return attacks;
         }
 
+        public static uint GenerateBishopOccupancy(int square)
+        {
+            uint attacks = 0;
+
+            int r, f;
+
+            var tr = square / Constants.BoardSize;
+            var tf = square % Constants.BoardSize;
+
+            const int limit = Constants.BoardSize - 2;
+
+            // top right
+            for (r = tr + 1, f = tf + 1; r <= limit && f <= limit; r++, f++)
+                attacks |= (uint) (1 << (r * Constants.BoardSize + f));
+            // bottom right
+            for (r = tr - 1, f = tf + 1; r >= 1 && f <= limit; r--, f++)
+                attacks |= (uint) (1 << (r * Constants.BoardSize + f));
+            // top left
+            for (r = tr + 1, f = tf - 1; r <= limit && f >= 1; r++, f--)
+                attacks |= (uint) (1 << (r * Constants.BoardSize + f));
+            // bottom left
+            for (r = tr - 1, f = tf - 1; r >= 1 && f >= 1; r--, f--)
+                attacks |= (uint) (1 << (r * Constants.BoardSize + f));
+
+            return attacks;
+        }
+
+        public static uint GenerateRookOccupancy(int square)
+        {
+            uint attacks = 0;
+
+            int r, f;
+
+            var tr = square / Constants.BoardSize;
+            var tf = square % Constants.BoardSize;
+
+            const int limit = Constants.BoardSize - 2;
+
+            // down
+            for (r = tr + 1; r <= limit; r++)
+                attacks |= (uint) (1 << (r * Constants.BoardSize + tf));
+            // up
+            for (r = tr - 1; r >= 1; r--)
+                attacks |= (uint) (1 << (r * Constants.BoardSize + tf));
+            // right
+            for (f = tf + 1; f <= limit; f++)
+                attacks |= (uint) (1 << (tr * Constants.BoardSize + f));
+            // left
+            for (f = tf - 1; f >= 1; f--)
+                attacks |= (uint) (1 << (tr * Constants.BoardSize + f));
+
+            return attacks;
+        }
+
+        /// <summary>
+        /// Generate bishop moves, but counting blocking pieces
+        /// </summary>
+        public static uint GenerateBishopAttacksOnTheFly(int square, uint block)
+        {
+            uint attacks = 0;
+
+            int r, f;
+
+            var tr = square / Constants.BoardSize;
+            var tf = square % Constants.BoardSize;
+
+            const int limit = Constants.BoardSize - 1;
+
+            // top right
+            for (r = tr + 1, f = tf + 1; r <= limit && f <= limit; r++, f++)
+            {
+                var k = (uint) (1 << (r * Constants.BoardSize + f));
+                attacks |= k;
+                if ((k & block) != 0) break;
+            }
+
+            // bottom right
+            for (r = tr - 1, f = tf + 1; r >= 0 && f <= limit; r--, f++)
+            {
+                var k = (uint) (1 << (r * Constants.BoardSize + f));
+                attacks |= k;
+                if ((k & block) != 0) break;
+            }
+
+            // top left
+            for (r = tr + 1, f = tf - 1; r <= limit && f >= 0; r++, f--)
+            {
+                var k = (uint) (1 << (r * Constants.BoardSize + f));
+                attacks |= k;
+                if ((k & block) != 0) break;
+            }
+
+            // bottom left
+            for (r = tr - 1, f = tf - 1; r >= 0 && f >= 0; r--, f--)
+            {
+                attacks |= (uint) (1 << (r * Constants.BoardSize + f));
+            }
+
+            return attacks;
+        }
+
+        /// <summary>
+        /// Generate rook moves, but counting blockers
+        /// </summary>
+        public static uint GenerateRookAttacksOnTheFly(int square, uint block)
+        {
+            uint attacks = 0;
+
+            int r, f;
+
+            var tr = square / Constants.BoardSize;
+            var tf = square % Constants.BoardSize;
+
+            const int limit = Constants.BoardSize - 1;
+
+            // down
+            for (r = tr + 1; r <= limit; r++)
+            {
+                var k = (uint) (1 << (r * Constants.BoardSize + tf));
+                attacks |= k;
+                if ((k & block) != 0) break;
+            }
+
+            // up
+            for (r = tr - 1; r >= 0; r--)
+            {
+                var k = (uint) (1 << (r * Constants.BoardSize + tf));
+                attacks |= k;
+                if ((k & block) != 0) break;
+            }
+
+            // right
+            for (f = tf + 1; f <= limit; f++)
+            {
+                var k = (uint) (1 << (tr * Constants.BoardSize + f));
+                attacks |= k;
+                if ((k & block) != 0) break;
+            }
+
+            // left
+            for (f = tf - 1; f >= 0; f--)
+            {
+                var k = (uint) (1 << (tr * Constants.BoardSize + f));
+                attacks |= k;
+                if ((k & block) != 0) break;
+            }
+
+            return attacks;
+        }
+
         static Attacks()
         {
             PawnAttacks = new uint[2, Constants.BoardArea];
@@ -122,7 +287,7 @@ namespace GoneuraOu.Logic
             {
                 for (var turn = Turn.Sente; turn <= Turn.Gote; turn++)
                 {
-                    PawnAttacks[(int)turn, square] = GeneratePawnAttacks(square, turn);
+                    PawnAttacks[(int) turn, square] = GeneratePawnAttacks(square, turn);
                 }
 
                 KingAttacks[square] = GenerateKingAttacks(square);
