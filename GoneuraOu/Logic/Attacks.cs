@@ -1,4 +1,5 @@
-﻿using GoneuraOu.Bitboard;
+﻿using System.Runtime.CompilerServices;
+using GoneuraOu.Bitboard;
 using GoneuraOu.Board;
 
 namespace GoneuraOu.Logic
@@ -24,6 +25,12 @@ namespace GoneuraOu.Logic
         /// --S--
         /// -$-$-
         public static readonly uint[] SilverAttacks;
+
+        public static readonly uint[] BishopMasks;
+        public static readonly uint[] RookMasks;
+
+        public static readonly uint[,] BishopAttacks;
+        public static readonly uint[,] RookAttacks;
 
         private static uint GeneratePawnAttacks(int square, Turn turn)
         {
@@ -277,13 +284,81 @@ namespace GoneuraOu.Logic
             return attacks;
         }
 
+        /// <summary>
+        /// Set Occupancies
+        /// </summary>
+        public static uint SetOccupancy(int index, int bitsInMask, uint attackMask)
+        {
+            uint occupancyMap = 0;
+
+            for (var count = 0; count < bitsInMask; count++)
+            {
+                // get LSB1 index
+                var square = attackMask.Lsb1();
+
+                // we know attackMask[square] is always 1 (unless bb is empty)
+                attackMask ^= square.SquareToBit();
+
+                if ((index & (1 << count)) != 0)
+                    occupancyMap |= (uint) 1 << square;
+            }
+
+            return occupancyMap;
+        }
+
+        public static readonly int[] BishopRelevantBits =
+        {
+            3, 2, 2, 2, 3,
+            2, 2, 2, 2, 2,
+            2, 2, 4, 2, 2,
+            2, 2, 2, 2, 2,
+            3, 2, 2, 2, 3
+        };
+
+        public static readonly int[] RookRelevantBits =
+        {
+            6, 5, 5, 5, 6,
+            5, 4, 4, 4, 5,
+            5, 4, 4, 4, 5,
+            5, 4, 4, 4, 5,
+            6, 5, 5, 5, 6
+        };
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static uint GetBishopAttacks(int square, uint occupancy)
+        {
+            occupancy &= BishopMasks[square];
+            occupancy *= Magic.BishopMagic[square];
+            occupancy >>= 32 - BishopRelevantBits[square];
+
+            return BishopAttacks[square, occupancy];
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static uint GetRookAttacks(int square, uint occupancy)
+        {
+            occupancy &= RookMasks[square];
+            occupancy *= Magic.RookMagic[square];
+            occupancy >>= 32 - RookRelevantBits[square];
+
+            return RookAttacks[square, occupancy];
+        }
+
         static Attacks()
         {
             PawnAttacks = new uint[2, Constants.BoardArea];
             KingAttacks = new uint[Constants.BoardArea];
             GoldAttacks = new uint[Constants.BoardArea];
             SilverAttacks = new uint[Constants.BoardArea];
-            for (var square = 0; square < Constants.BoardArea; square++)
+            BishopAttacks = new uint[Constants.BoardArea, Constants.MaxBishopOccupancy];
+            RookAttacks = new uint[Constants.BoardArea, Constants.MaxRookOccupancy];
+
+            BishopMasks = new uint[Constants.BoardArea];
+            RookMasks = new uint[Constants.BoardArea];
+
+            for (var square = 0;
+                square < Constants.BoardArea;
+                square++)
             {
                 for (var turn = Turn.Sente; turn <= Turn.Gote; turn++)
                 {
@@ -293,6 +368,37 @@ namespace GoneuraOu.Logic
                 KingAttacks[square] = GenerateKingAttacks(square);
                 GoldAttacks[square] = GenerateGoldAttacks(square);
                 SilverAttacks[square] = GenerateSilverAttacks(square);
+
+                BishopMasks[square] = GenerateBishopOccupancy(square);
+                RookMasks[square] = GenerateRookOccupancy(square);
+
+                // bishop and rook attacks
+                for (var bishop = 0; bishop < 2; bishop++)
+                {
+                    var attackMask = bishop == 1 ? BishopMasks[square] : RookMasks[square];
+
+                    var relevantBits = attackMask.Count();
+                    var occupancyIndices = 1 << relevantBits;
+
+                    for (var i = 0; i < occupancyIndices; i++)
+                    {
+                        var occupancy = Attacks.SetOccupancy(i, relevantBits, attackMask);
+                        if (bishop == 1)
+                        {
+                            var magicIndex = (occupancy * Magic.BishopMagic[square]) >>
+                                             (32 - BishopRelevantBits[square]);
+
+                            BishopAttacks[square, magicIndex] = GenerateBishopAttacksOnTheFly(square, occupancy);
+                        }
+                        else
+                        {
+                            var magicIndex = (occupancy * Magic.RookMagic[square]) >>
+                                             (32 - RookRelevantBits[square]);
+
+                            RookAttacks[square, magicIndex] = GenerateRookAttacksOnTheFly(square, occupancy);
+                        }
+                    }
+                }
             }
         }
     }

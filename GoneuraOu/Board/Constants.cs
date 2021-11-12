@@ -4,6 +4,11 @@
     {
         public const byte BoardSize = 5;
         public const byte BoardArea = BoardSize * BoardSize;
+        
+        public const int MaxBishopOccupancy = 1 << 4;
+        public const int MaxRookOccupancy = 1 << 6;
+
+        public const int OccupancySize = MaxRookOccupancy;
 
         public static readonly char[] Alphabets = {'a', 'b', 'c', 'd', 'e'};
 
