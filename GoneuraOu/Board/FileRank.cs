@@ -11,4 +11,13 @@
         public const uint Flank = A | E;
         public const uint NotFlank = B | C | D;
     }
+
+    public static class Ranks
+    {
+        public const uint One = 0b11111_00000_00000_00000_00000;
+        public const uint Two = 0b11111_00000_00000_00000;
+        public const uint Three = 0b11111_00000_00000;
+        public const uint Four = 0b11111_00000;
+        public const uint Five = 0b11111;
+    }
 }

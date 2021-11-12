@@ -147,16 +147,16 @@ namespace GoneuraOu.Logic
 
             // top right
             for (r = tr + 1, f = tf + 1; r <= limit && f <= limit; r++, f++)
-                attacks |= (uint) (1 << (r * Constants.BoardSize + f));
+                attacks |= (uint)(1 << (r * Constants.BoardSize + f));
             // bottom right
             for (r = tr - 1, f = tf + 1; r >= 1 && f <= limit; r--, f++)
-                attacks |= (uint) (1 << (r * Constants.BoardSize + f));
+                attacks |= (uint)(1 << (r * Constants.BoardSize + f));
             // top left
             for (r = tr + 1, f = tf - 1; r <= limit && f >= 1; r++, f--)
-                attacks |= (uint) (1 << (r * Constants.BoardSize + f));
+                attacks |= (uint)(1 << (r * Constants.BoardSize + f));
             // bottom left
             for (r = tr - 1, f = tf - 1; r >= 1 && f >= 1; r--, f--)
-                attacks |= (uint) (1 << (r * Constants.BoardSize + f));
+                attacks |= (uint)(1 << (r * Constants.BoardSize + f));
 
             return attacks;
         }
@@ -174,16 +174,16 @@ namespace GoneuraOu.Logic
 
             // down
             for (r = tr + 1; r <= limit; r++)
-                attacks |= (uint) (1 << (r * Constants.BoardSize + tf));
+                attacks |= (uint)(1 << (r * Constants.BoardSize + tf));
             // up
             for (r = tr - 1; r >= 1; r--)
-                attacks |= (uint) (1 << (r * Constants.BoardSize + tf));
+                attacks |= (uint)(1 << (r * Constants.BoardSize + tf));
             // right
             for (f = tf + 1; f <= limit; f++)
-                attacks |= (uint) (1 << (tr * Constants.BoardSize + f));
+                attacks |= (uint)(1 << (tr * Constants.BoardSize + f));
             // left
             for (f = tf - 1; f >= 1; f--)
-                attacks |= (uint) (1 << (tr * Constants.BoardSize + f));
+                attacks |= (uint)(1 << (tr * Constants.BoardSize + f));
 
             return attacks;
         }
@@ -205,7 +205,7 @@ namespace GoneuraOu.Logic
             // top right
             for (r = tr + 1, f = tf + 1; r <= limit && f <= limit; r++, f++)
             {
-                var k = (uint) (1 << (r * Constants.BoardSize + f));
+                var k = (uint)(1 << (r * Constants.BoardSize + f));
                 attacks |= k;
                 if ((k & block) != 0) break;
             }
@@ -213,7 +213,7 @@ namespace GoneuraOu.Logic
             // bottom right
             for (r = tr - 1, f = tf + 1; r >= 0 && f <= limit; r--, f++)
             {
-                var k = (uint) (1 << (r * Constants.BoardSize + f));
+                var k = (uint)(1 << (r * Constants.BoardSize + f));
                 attacks |= k;
                 if ((k & block) != 0) break;
             }
@@ -221,7 +221,7 @@ namespace GoneuraOu.Logic
             // top left
             for (r = tr + 1, f = tf - 1; r <= limit && f >= 0; r++, f--)
             {
-                var k = (uint) (1 << (r * Constants.BoardSize + f));
+                var k = (uint)(1 << (r * Constants.BoardSize + f));
                 attacks |= k;
                 if ((k & block) != 0) break;
             }
@@ -229,7 +229,7 @@ namespace GoneuraOu.Logic
             // bottom left
             for (r = tr - 1, f = tf - 1; r >= 0 && f >= 0; r--, f--)
             {
-                attacks |= (uint) (1 << (r * Constants.BoardSize + f));
+                attacks |= (uint)(1 << (r * Constants.BoardSize + f));
             }
 
             return attacks;
@@ -252,7 +252,7 @@ namespace GoneuraOu.Logic
             // down
             for (r = tr + 1; r <= limit; r++)
             {
-                var k = (uint) (1 << (r * Constants.BoardSize + tf));
+                var k = (uint)(1 << (r * Constants.BoardSize + tf));
                 attacks |= k;
                 if ((k & block) != 0) break;
             }
@@ -260,7 +260,7 @@ namespace GoneuraOu.Logic
             // up
             for (r = tr - 1; r >= 0; r--)
             {
-                var k = (uint) (1 << (r * Constants.BoardSize + tf));
+                var k = (uint)(1 << (r * Constants.BoardSize + tf));
                 attacks |= k;
                 if ((k & block) != 0) break;
             }
@@ -268,7 +268,7 @@ namespace GoneuraOu.Logic
             // right
             for (f = tf + 1; f <= limit; f++)
             {
-                var k = (uint) (1 << (tr * Constants.BoardSize + f));
+                var k = (uint)(1 << (tr * Constants.BoardSize + f));
                 attacks |= k;
                 if ((k & block) != 0) break;
             }
@@ -276,7 +276,7 @@ namespace GoneuraOu.Logic
             // left
             for (f = tf - 1; f >= 0; f--)
             {
-                var k = (uint) (1 << (tr * Constants.BoardSize + f));
+                var k = (uint)(1 << (tr * Constants.BoardSize + f));
                 attacks |= k;
                 if ((k & block) != 0) break;
             }
@@ -300,7 +300,7 @@ namespace GoneuraOu.Logic
                 attackMask ^= square.SquareToBit();
 
                 if ((index & (1 << count)) != 0)
-                    occupancyMap |= (uint) 1 << square;
+                    occupancyMap |= (uint)1 << square;
             }
 
             return occupancyMap;
@@ -362,7 +362,7 @@ namespace GoneuraOu.Logic
             {
                 for (var turn = Turn.Sente; turn <= Turn.Gote; turn++)
                 {
-                    PawnAttacks[(int) turn, square] = GeneratePawnAttacks(square, turn);
+                    PawnAttacks[(int)turn, square] = GeneratePawnAttacks(square, turn);
                 }
 
                 KingAttacks[square] = GenerateKingAttacks(square);
@@ -382,7 +382,7 @@ namespace GoneuraOu.Logic
 
                     for (var i = 0; i < occupancyIndices; i++)
                     {
-                        var occupancy = Attacks.SetOccupancy(i, relevantBits, attackMask);
+                        var occupancy = SetOccupancy(i, relevantBits, attackMask);
                         if (bishop == 1)
                         {
                             var magicIndex = (occupancy * Magic.BishopMagic[square]) >>

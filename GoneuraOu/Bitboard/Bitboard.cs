@@ -53,7 +53,7 @@ namespace GoneuraOu.Bitboard
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static uint PopBitAt(this uint bb, int square)
         {
-            return bb.GetBitAt(square) ? bb ^ square.SquareToBit() : bb;
+            return bb & ~square.SquareToBit();
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -103,6 +103,7 @@ namespace GoneuraOu.Bitboard
                 Console.Write(Constants.Alphabets[file]);
                 Console.Write(file == Constants.BoardSize - 1 ? '\n' : ' ');
             }
+
             Console.WriteLine($"Decimal: {bb}\n");
         }
 
@@ -111,7 +112,7 @@ namespace GoneuraOu.Bitboard
         {
             return BitOperations.PopCount(board);
         }
-        
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int Lsb1(this uint board)
         {
