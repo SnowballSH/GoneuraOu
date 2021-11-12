@@ -12,6 +12,12 @@ namespace GoneuraOu.Common
             return pt >= Piece.GotePawn ? Turn.Gote : Turn.Sente;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int PieceType(this Piece pt)
+        {
+            return (int) pt % 10;
+        }
+
         public static Piece ToPiece(this int ch, bool promoted)
         {
             if (promoted)
