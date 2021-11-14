@@ -8,6 +8,8 @@ namespace GoneuraOu.Bitboard
     // Implements uint (32-bit) for 5x5 board
     public static class Bitboard
     {
+        public const uint LegalBitboard = 0x1ffffff;
+
         /// <summary>
         /// Gets the bit (1 or 0) at a given index
         /// </summary>
@@ -18,12 +20,6 @@ namespace GoneuraOu.Bitboard
         public static bool GetBitAt(this uint bb, int square)
         {
             return (bb & square.SquareToBit()) != 0;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool GetBitAt(this uint bb, Square square)
-        {
-            return bb.GetBitAt((int)square);
         }
 
         /// <summary>
@@ -38,12 +34,6 @@ namespace GoneuraOu.Bitboard
             return bb | square.SquareToBit();
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static uint SetBitAt(this uint bb, Square square)
-        {
-            return bb.SetBitAt((int)square);
-        }
-
         /// <summary>
         /// Pops a bit (reset to 0) on a bitboard
         /// </summary>
@@ -55,23 +45,10 @@ namespace GoneuraOu.Bitboard
         {
             return bb & ~square.SquareToBit();
         }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static uint PopBitAt(this uint bb, Square square)
-        {
-            return bb.PopBitAt((int)square);
-        }
-
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static uint SquareToBit(this int square)
         {
             return (uint)(1 << square);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static uint SquareToBit(this Square square)
-        {
-            return (uint)(1 << (int)square);
         }
 
         /// <summary>
@@ -89,7 +66,7 @@ namespace GoneuraOu.Bitboard
 
                     if (file == 0)
                     {
-                        Console.Write($"{Constants.BoardSize - rank} ");
+                        Console.Write($"{Constants.Alphabets[rank]} ");
                     }
 
                     Console.Write(bb.GetBitAt(square) ? 1 : 0);
@@ -100,7 +77,7 @@ namespace GoneuraOu.Bitboard
             Console.Write("  ");
             for (var file = 0; file < Constants.BoardSize; file++)
             {
-                Console.Write(Constants.Alphabets[file]);
+                Console.Write(5 - file);
                 Console.Write(file == Constants.BoardSize - 1 ? '\n' : ' ');
             }
 

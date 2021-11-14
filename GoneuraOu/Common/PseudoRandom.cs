@@ -1,4 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
+using GoneuraOu.Board;
 
 namespace GoneuraOu.Common
 {
@@ -23,7 +24,13 @@ namespace GoneuraOu.Common
         public static uint NextU25()
         {
             // cut bits that are over 25
-            return NextU32() & 0x1ffffff;
+            return NextU32() & Bitboard.Bitboard.LegalBitboard;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static uint NextSplitU32()
+        {
+            return ((NextU32() & 0xFFFF) << 16) | (NextU32() & 0xFFFF);
         }
     }
 }

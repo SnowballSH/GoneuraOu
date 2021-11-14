@@ -14,11 +14,11 @@
 
         public static readonly string[] SquareCoords =
         {
-            "a5", "b5", "c5", "d5", "e5",
-            "a4", "b4", "c4", "d4", "e4",
-            "a3", "b3", "c3", "d3", "e3",
-            "a2", "b2", "c2", "d2", "e2",
-            "a1", "b1", "c1", "d1", "e1",
+            "5a", "4a", "3a", "2a", "1a",
+            "5b", "4b", "3b", "2b", "1b",
+            "5c", "4c", "3c", "2c", "1c",
+            "5d", "4d", "3d", "2d", "1d",
+            "5e", "4e", "3e", "2e", "1e",
         };
 
         public static readonly string[] AsciiPieces =

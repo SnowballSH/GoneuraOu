@@ -2,10 +2,10 @@
 {
     public enum Square
     {
-        A5, B5, C5, D5, E5,
-        A4, B4, C4, D4, E4,
-        A3, B3, C3, D3, E3,
-        A2, B2, C2, D2, E2,
-        A1, B1, C1, D1, E1,
+        S5A, S4A, S3A, S2A, S1A,
+        S5B, S4B, S3B, S2B, S1B,
+        S5C, S4C, S3C, S2C, S1C,
+        S5D, S4D, S3D, S2D, S1D,
+        S5E, S4E, S3E, S2E, S1E,
     }
 }

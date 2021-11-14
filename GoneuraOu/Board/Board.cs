@@ -91,14 +91,14 @@ namespace GoneuraOu.Board
                         promoteNext = true;
                         break;
                     default:
-                        var pt = ((int) ch).ToPiece(promoteNext);
+                        var pt = ((int)ch).ToPiece(promoteNext);
                         promoteNext = false;
 
                         var square = rank * Constants.BoardSize + file;
                         var sqbb = square.SquareToBit();
 
-                        Bitboards[(int) pt] |= sqbb;
-                        Occupancies[(int) pt.PieceTurn()] |= sqbb;
+                        Bitboards[(int)pt] |= sqbb;
+                        Occupancies[(int)pt.PieceTurn()] |= sqbb;
                         Occupancies[2] |= sqbb;
                         file++;
                         break;
@@ -106,16 +106,16 @@ namespace GoneuraOu.Board
 
                 continue;
 
-                parsePocket:
+            parsePocket:
                 if (ch is ']' or '-') break;
-                var pocketPt = ((int) ch).ToPiece(false);
-                if (!Pocket[(int) pocketPt.PieceTurn(), pocketPt.PieceType() * 2])
+                var pocketPt = ((int)ch).ToPiece(false);
+                if (!Pocket[(int)pocketPt.PieceTurn(), pocketPt.PieceType() * 2])
                 {
-                    Pocket[(int) pocketPt.PieceTurn(), pocketPt.PieceType() * 2] = true;
+                    Pocket[(int)pocketPt.PieceTurn(), pocketPt.PieceType() * 2] = true;
                 }
                 else
                 {
-                    Pocket[(int) pocketPt.PieceTurn(), pocketPt.PieceType() * 2 + 1] = true;
+                    Pocket[(int)pocketPt.PieceTurn(), pocketPt.PieceType() * 2 + 1] = true;
                 }
             }
 
@@ -133,14 +133,14 @@ namespace GoneuraOu.Board
                 {
                     if (file == 0)
                     {
-                        Console.Write($"{Constants.BoardSize - rank} ");
+                        Console.Write($"{Constants.Alphabets[rank]} ");
                     }
 
                     var square = rank * Constants.BoardSize + file;
 
                     int? piece = null;
 
-                    for (var pi = 0; pi <= (int) Piece.GoteHorse; pi++)
+                    for (var pi = 0; pi <= (int)Piece.GoteHorse; pi++)
                     {
                         var bb = Bitboards[pi];
                         if (!bb.GetBitAt(square)) continue;
@@ -156,13 +156,13 @@ namespace GoneuraOu.Board
             Console.Write("   ");
             for (var file = 0; file < Constants.BoardSize; file++)
             {
-                Console.Write(Constants.Alphabets[file]);
+                Console.Write(5 - file);
                 Console.Write(file == Constants.BoardSize - 1 ? '\n' : "  ");
             }
 
             for (var turn = 0; turn < 2; turn++)
             {
-                Console.Write($"{(Turn) turn} Pocket:");
+                Console.Write($"{(Turn)turn} Pocket:");
                 for (var pi = 0; pi < 10; pi++)
                 {
                     if (!Pocket[turn, pi]) continue;

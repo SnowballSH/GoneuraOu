@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System;
+using System.Runtime.CompilerServices;
 using GoneuraOu.Bitboard;
 using GoneuraOu.Board;
 
@@ -25,12 +26,6 @@ namespace GoneuraOu.Logic
         /// --S--
         /// -$-$-
         public static readonly uint[] SilverAttacks;
-
-        public static readonly uint[] BishopMasks;
-        public static readonly uint[] RookMasks;
-
-        public static readonly uint[,] BishopAttacks;
-        public static readonly uint[,] RookAttacks;
 
         private static uint GeneratePawnAttacks(int square, Turn turn)
         {
@@ -327,21 +322,25 @@ namespace GoneuraOu.Logic
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static uint GetBishopAttacks(int square, uint occupancy)
         {
-            occupancy &= BishopMasks[square];
-            occupancy *= Magic.BishopMagic[square];
-            occupancy >>= 32 - BishopRelevantBits[square];
-
-            return BishopAttacks[square, occupancy];
+            return GenerateBishopAttacksOnTheFly(square, occupancy);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static uint GetRookAttacks(int square, uint occupancy)
         {
-            occupancy &= RookMasks[square];
-            occupancy *= Magic.RookMagic[square];
-            occupancy >>= 32 - RookRelevantBits[square];
+            return GenerateRookAttacksOnTheFly(square, occupancy);
+        }
 
-            return RookAttacks[square, occupancy];
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static uint GetDragonAttacks(int square, uint occupancy)
+        {
+            return GetRookAttacks(square, occupancy) | KingAttacks[square];
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static uint GetHorseAttacks(int square, uint occupancy)
+        {
+            return GetBishopAttacks(square, occupancy) | KingAttacks[square];
         }
 
         static Attacks()
@@ -350,11 +349,6 @@ namespace GoneuraOu.Logic
             KingAttacks = new uint[Constants.BoardArea];
             GoldAttacks = new uint[Constants.BoardArea];
             SilverAttacks = new uint[Constants.BoardArea];
-            BishopAttacks = new uint[Constants.BoardArea, Constants.MaxBishopOccupancy];
-            RookAttacks = new uint[Constants.BoardArea, Constants.MaxRookOccupancy];
-
-            BishopMasks = new uint[Constants.BoardArea];
-            RookMasks = new uint[Constants.BoardArea];
 
             for (var square = 0;
                 square < Constants.BoardArea;
@@ -368,37 +362,6 @@ namespace GoneuraOu.Logic
                 KingAttacks[square] = GenerateKingAttacks(square);
                 GoldAttacks[square] = GenerateGoldAttacks(square);
                 SilverAttacks[square] = GenerateSilverAttacks(square);
-
-                BishopMasks[square] = GenerateBishopOccupancy(square);
-                RookMasks[square] = GenerateRookOccupancy(square);
-
-                // bishop and rook attacks
-                for (var bishop = 0; bishop < 2; bishop++)
-                {
-                    var attackMask = bishop == 1 ? BishopMasks[square] : RookMasks[square];
-
-                    var relevantBits = attackMask.Count();
-                    var occupancyIndices = 1 << relevantBits;
-
-                    for (var i = 0; i < occupancyIndices; i++)
-                    {
-                        var occupancy = SetOccupancy(i, relevantBits, attackMask);
-                        if (bishop == 1)
-                        {
-                            var magicIndex = (occupancy * Magic.BishopMagic[square]) >>
-                                             (32 - BishopRelevantBits[square]);
-
-                            BishopAttacks[square, magicIndex] = GenerateBishopAttacksOnTheFly(square, occupancy);
-                        }
-                        else
-                        {
-                            var magicIndex = (occupancy * Magic.RookMagic[square]) >>
-                                             (32 - RookRelevantBits[square]);
-
-                            RookAttacks[square, magicIndex] = GenerateRookAttacksOnTheFly(square, occupancy);
-                        }
-                    }
-                }
             }
         }
     }
