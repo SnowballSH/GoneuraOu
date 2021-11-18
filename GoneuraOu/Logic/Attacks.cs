@@ -20,12 +20,12 @@ namespace GoneuraOu.Logic
         /// -$$$-
         /// -$G$-
         /// --$--
-        public static readonly uint[] GoldAttacks;
+        public static readonly uint[,] GoldAttacks;
 
         /// -$$$-
         /// --S--
         /// -$-$-
-        public static readonly uint[] SilverAttacks;
+        public static readonly uint[,] SilverAttacks;
 
         private static uint GeneratePawnAttacks(int square, Turn turn)
         {
@@ -45,68 +45,128 @@ namespace GoneuraOu.Logic
             return attacks;
         }
 
-        private static uint GenerateGoldAttacks(int square)
+        private static uint GenerateGoldAttacks(int square, Turn turn)
         {
             var bb = 0u.SetBitAt(square);
             uint attacks = 0;
 
-            // is not top rank
-            if (square >= Constants.BoardSize)
+            if (turn == Turn.Sente)
             {
-                // up
-                attacks |= bb >> Constants.BoardSize;
-                // up left
+                // is not top rank
+                if (square >= (int)Square.S5B)
+                {
+                    // up
+                    attacks |= bb >> Constants.BoardSize;
+                    // up left
+                    if ((bb & Files.A) == 0)
+                        attacks |= bb >> (Constants.BoardSize + 1);
+                    // up right
+                    if ((bb & Files.E) == 0)
+                        attacks |= bb >> (Constants.BoardSize - 1);
+                }
+
+                // left
                 if ((bb & Files.A) == 0)
-                    attacks |= bb >> (Constants.BoardSize + 1);
-                // up right
+                    attacks |= bb >> 1;
+                // right
                 if ((bb & Files.E) == 0)
-                    attacks |= bb >> (Constants.BoardSize - 1);
+                    attacks |= bb << 1;
+
+                // is not bottom rank
+                if (square <= (int)Square.S1D)
+                {
+                    // bottom
+                    attacks |= bb << Constants.BoardSize;
+                }
             }
-
-            // left
-            if ((bb & Files.A) == 0)
-                attacks |= bb >> 1;
-            // right
-            if ((bb & Files.E) == 0)
-                attacks |= bb << 1;
-
-            // is not bottom rank
-            if (square < Constants.BoardArea - Constants.BoardSize)
+            else
             {
-                // bottom
-                attacks |= bb << Constants.BoardSize;
+                // is not bottom rank
+                if (square <= (int)Square.S1D)
+                {
+                    // down
+                    attacks |= bb << Constants.BoardSize;
+                    // down left
+                    if ((bb & Files.A) == 0)
+                        attacks |= bb << (Constants.BoardSize - 1);
+                    // down right
+                    if ((bb & Files.E) == 0)
+                        attacks |= bb << (Constants.BoardSize + 1);
+                }
+
+                // left
+                if ((bb & Files.A) == 0)
+                    attacks |= bb >> 1;
+                // right
+                if ((bb & Files.E) == 0)
+                    attacks |= bb << 1;
+
+                // is not top rank
+                if (square >= (int)Square.S5B)
+                {
+                    // top
+                    attacks |= bb >> Constants.BoardSize;
+                }
             }
 
             return attacks;
         }
 
-        private static uint GenerateSilverAttacks(int square)
+        private static uint GenerateSilverAttacks(int square, Turn turn)
         {
             var bb = 0u.SetBitAt(square);
             uint attacks = 0;
 
-            // is not top rank
-            if (square >= Constants.BoardSize)
+            if (turn == Turn.Sente)
             {
-                // up
-                attacks |= bb >> Constants.BoardSize;
-                // up left
+                // is not top rank
+                if (square >= (int)Square.S5B)
+                {
+                    // up
+                    attacks |= bb >> Constants.BoardSize;
+                    // up left
+                    if ((bb & Files.A) == 0)
+                        attacks |= bb >> (Constants.BoardSize + 1);
+                    // up right
+                    if ((bb & Files.E) == 0)
+                        attacks |= bb >> (Constants.BoardSize - 1);
+                }
+
+                // is bottom rank
+                if (square >= (int)Square.S5E) return attacks;
+
+                // add bottom left
+                if ((bb & Files.A) == 0)
+                    attacks |= bb << (Constants.BoardSize - 1);
+                // add bottom right
+                if ((bb & Files.E) == 0)
+                    attacks |= bb << (Constants.BoardSize + 1);
+            }
+            else
+            {
+                // is not bottom rank
+                if (square <= (int)Square.S1D)
+                {
+                    // bottom
+                    attacks |= bb << Constants.BoardSize;
+                    // bottom left
+                    if ((bb & Files.A) == 0)
+                        attacks |= bb << (Constants.BoardSize - 1);
+                    // bottom right
+                    if ((bb & Files.E) == 0)
+                        attacks |= bb << (Constants.BoardSize + 1);
+                }
+
+                // is top rank
+                if (square <= (int)Square.S1A) return attacks;
+
+                // add top left
                 if ((bb & Files.A) == 0)
                     attacks |= bb >> (Constants.BoardSize + 1);
-                // up right
+                // add top right
                 if ((bb & Files.E) == 0)
                     attacks |= bb >> (Constants.BoardSize - 1);
             }
-
-            // is bottom rank
-            if (square >= Constants.BoardArea - Constants.BoardSize) return attacks;
-
-            // add bottom left
-            if ((bb & Files.A) == 0)
-                attacks |= bb << (Constants.BoardSize - 1);
-            // add bottom right
-            if ((bb & Files.E) == 0)
-                attacks |= bb << (Constants.BoardSize + 1);
 
             return attacks;
         }
@@ -114,7 +174,7 @@ namespace GoneuraOu.Logic
         private static uint GenerateKingAttacks(int square)
         {
             var bb = 0u.SetBitAt(square);
-            var attacks = GenerateGoldAttacks(square);
+            var attacks = GenerateGoldAttacks(square, Turn.Sente);
 
             // is bottom rank
             if (square >= Constants.BoardArea - Constants.BoardSize) return attacks;
@@ -348,8 +408,8 @@ namespace GoneuraOu.Logic
         {
             PawnAttacks = new uint[2, Constants.BoardArea];
             KingAttacks = new uint[Constants.BoardArea];
-            GoldAttacks = new uint[Constants.BoardArea];
-            SilverAttacks = new uint[Constants.BoardArea];
+            GoldAttacks = new uint[2, Constants.BoardArea];
+            SilverAttacks = new uint[2, Constants.BoardArea];
 
             for (var square = 0;
                 square < Constants.BoardArea;
@@ -358,11 +418,11 @@ namespace GoneuraOu.Logic
                 for (var turn = Turn.Sente; turn <= Turn.Gote; turn++)
                 {
                     PawnAttacks[(int)turn, square] = GeneratePawnAttacks(square, turn);
+                    GoldAttacks[(int)turn, square] = GenerateGoldAttacks(square, turn);
+                    SilverAttacks[(int)turn, square] = GenerateSilverAttacks(square, turn);
                 }
 
                 KingAttacks[square] = GenerateKingAttacks(square);
-                GoldAttacks[square] = GenerateGoldAttacks(square);
-                SilverAttacks[square] = GenerateSilverAttacks(square);
             }
         }
     }

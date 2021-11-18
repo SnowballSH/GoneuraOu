@@ -30,6 +30,7 @@ namespace GoneuraOu.Board
         public bool[,] Pocket = new bool[2, 10];
 
         public Turn CurrentTurn;
+        public (int, int) KingSquares;
 
         public const string StartingSFen = "rbsgk/4p/5/P4/KGSBR[-] w - 1";
 
@@ -78,10 +79,20 @@ namespace GoneuraOu.Board
                         break;
                     default:
                         var pt = ((int)ch).ToPiece(promoteNext);
+
                         promoteNext = false;
 
                         var square = rank * Constants.BoardSize + file;
                         var sqbb = square.SquareToBit();
+
+                        if (pt == Piece.SenteKing)
+                        {
+                            KingSquares.Item1 = square;
+                        }
+                        else if (pt == Piece.GoteKing)
+                        {
+                            KingSquares.Item2 = square;
+                        }
 
                         Bitboards[(int)pt] |= sqbb;
                         Occupancies[(int)pt.PieceTurn()] |= sqbb;
@@ -126,8 +137,8 @@ namespace GoneuraOu.Board
         /// <summary>
         /// Performs the move on a new board
         /// </summary>
-        /// <returns>New board with the move made</returns>
-        public Board MakeMove(uint move)
+        /// <returns>new board?</returns>
+        public Board? MakeMove(uint move)
         {
             var nb = ShallowCopy();
 
@@ -156,19 +167,35 @@ namespace GoneuraOu.Board
                 Utils.ForceSetBit(ref nb.Bitboards[ppt], (int)target);
                 Utils.ForceSetBit(ref nb.Occupancies[(int)nb.CurrentTurn], (int)target);
 
+                if (ppt == (int)Piece.SenteKing)
+                {
+                    nb.KingSquares.Item1 = (int)target;
+                }
+                else if (ppt == (int)Piece.GoteKing)
+                {
+                    nb.KingSquares.Item2 = (int)target;
+                }
+
                 // handle capture
                 if (capture == 1)
                 {
                     Utils.ForcePopBit(ref nb.Bitboards[nb.PieceLoc[target].GetValueOrDefault(0)], (int)target);
-                    Utils.ForcePopBit(ref nb.Occupancies[(int)nb.CurrentTurn ^ 1], (int)target);
+                    Utils.ForcePopBit(ref nb.Occupancies[nb.CurrentTurn.InvertInt()], (int)target);
                 }
 
                 nb.PieceLoc[source] = null;
                 nb.PieceLoc[target] = pt;
+
+                // Is king in check?
+                if (nb.IsAttacked(nb.CurrentTurn == Turn.Sente ? nb.KingSquares.Item1 : nb.KingSquares.Item2,
+                    nb.CurrentTurn.InvertInt()))
+                {
+                    return null;
+                }
             }
 
             nb.Occupancies[2] = nb.Occupancies[0] | nb.Occupancies[1];
-            nb.CurrentTurn = (Turn)((int)nb.CurrentTurn ^ 1);
+            nb.CurrentTurn = nb.CurrentTurn.Invert();
 
             return nb;
         }

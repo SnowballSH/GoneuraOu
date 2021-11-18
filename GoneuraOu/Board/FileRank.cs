@@ -1,5 +1,8 @@
 ﻿namespace GoneuraOu.Board
 {
+    /// <summary>
+    /// Btw Files and ranks are from Chess's perspective.
+    /// </summary>
     public static class Files
     {
         public const uint A = 0b00001_00001_00001_00001_00001;
