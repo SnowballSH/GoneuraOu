@@ -93,7 +93,7 @@ namespace GoneuraOu.Board
 
                 continue;
 
-            parsePocket:
+                parsePocket:
                 if (ch is ']' or '-') break;
                 var pocketPt = ((int)ch).ToPiece(false);
                 if (!Pocket[(int)pocketPt.PieceTurn(), pocketPt.PieceType() * 2])
@@ -131,12 +131,9 @@ namespace GoneuraOu.Board
         {
             var nb = ShallowCopy();
 
-            var source = move.GetSource();
             var target = move.GetTarget();
             var pt = move.GetPieceType();
-            var promote = move.GetPromote();
             var drop = move.GetDrop();
-            var capture = move.GetCapture();
 
             // handle drop
             if (drop == 1)
@@ -146,6 +143,11 @@ namespace GoneuraOu.Board
             }
             else
             {
+                // lazy evaluation
+                var source = move.GetSource();
+                var promote = move.GetPromote();
+                var capture = move.GetCapture();
+
                 Utils.ForcePopBit(ref nb.Bitboards[pt], (int)source);
                 Utils.ForceSetBit(ref nb.Bitboards[promote == 1 ? Constants.PromotesTo[pt] : pt], (int)target);
 

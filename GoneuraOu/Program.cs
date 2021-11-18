@@ -17,8 +17,7 @@ foreach (var move in ml)
     Console.ReadLine();  // pause
 
     Console.WriteLine(move.ToUsi());
-    var nb = board.ShallowCopy();
-    nb.MakeMove(move);
+    var nb = board.MakeMove(move);
     nb.PrintBoard();
 
     Console.ReadLine();  // pause
