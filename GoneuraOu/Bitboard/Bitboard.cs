@@ -45,6 +45,7 @@ namespace GoneuraOu.Bitboard
         {
             return bb & ~square.SquareToBit();
         }
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static uint SquareToBit(this int square)
         {

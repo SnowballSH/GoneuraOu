@@ -1,7 +1,7 @@
-﻿using System;
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using GoneuraOu.Bitboard;
 using GoneuraOu.Board;
+using GoneuraOu.Common;
 
 namespace GoneuraOu.Logic
 {
@@ -142,16 +142,16 @@ namespace GoneuraOu.Logic
 
             // top right
             for (r = tr + 1, f = tf + 1; r <= limit && f <= limit; r++, f++)
-                attacks |= (uint)(1 << (r * Constants.BoardSize + f));
+                Utils.ForceSetBit(ref attacks, r * Constants.BoardSize + f);
             // bottom right
             for (r = tr - 1, f = tf + 1; r >= 1 && f <= limit; r--, f++)
-                attacks |= (uint)(1 << (r * Constants.BoardSize + f));
+                Utils.ForceSetBit(ref attacks, r * Constants.BoardSize + f);
             // top left
             for (r = tr + 1, f = tf - 1; r <= limit && f >= 1; r++, f--)
-                attacks |= (uint)(1 << (r * Constants.BoardSize + f));
+                Utils.ForceSetBit(ref attacks, r * Constants.BoardSize + f);
             // bottom left
             for (r = tr - 1, f = tf - 1; r >= 1 && f >= 1; r--, f--)
-                attacks |= (uint)(1 << (r * Constants.BoardSize + f));
+                Utils.ForceSetBit(ref attacks, r * Constants.BoardSize + f);
 
             return attacks;
         }
@@ -169,16 +169,17 @@ namespace GoneuraOu.Logic
 
             // down
             for (r = tr + 1; r <= limit; r++)
-                attacks |= (uint)(1 << (r * Constants.BoardSize + tf));
+                Utils.ForceSetBit(ref attacks, r * Constants.BoardSize + tf);
             // up
             for (r = tr - 1; r >= 1; r--)
-                attacks |= (uint)(1 << (r * Constants.BoardSize + tf));
+                Utils.ForceSetBit(ref attacks, r * Constants.BoardSize + tf);
+            ;
             // right
             for (f = tf + 1; f <= limit; f++)
-                attacks |= (uint)(1 << (tr * Constants.BoardSize + f));
+                Utils.ForceSetBit(ref attacks, tr * Constants.BoardSize + f);
             // left
             for (f = tf - 1; f >= 1; f--)
-                attacks |= (uint)(1 << (tr * Constants.BoardSize + f));
+                Utils.ForceSetBit(ref attacks, tr * Constants.BoardSize + f);
 
             return attacks;
         }
@@ -224,7 +225,7 @@ namespace GoneuraOu.Logic
             // bottom left
             for (r = tr - 1, f = tf - 1; r >= 0 && f >= 0; r--, f--)
             {
-                attacks |= (uint)(1 << (r * Constants.BoardSize + f));
+                Utils.ForceSetBit(ref attacks, r * Constants.BoardSize + f);
             }
 
             return attacks;
@@ -292,10 +293,10 @@ namespace GoneuraOu.Logic
                 var square = attackMask.Lsb1();
 
                 // we know attackMask[square] is always 1 (unless bb is empty)
-                attackMask ^= square.SquareToBit();
+                Utils.ForcePopBit(ref attackMask, square);
 
                 if ((index & (1 << count)) != 0)
-                    occupancyMap |= (uint)1 << square;
+                    Utils.ForceSetBit(ref occupancyMap, square);
             }
 
             return occupancyMap;

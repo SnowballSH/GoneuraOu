@@ -1,13 +1,18 @@
 ﻿using System;
+using System.Collections.Generic;
 using GoneuraOu.Bitboard;
 using GoneuraOu.Board;
+using GoneuraOu.Common;
 
 namespace GoneuraOu.Logic
 {
     public static class MoveGen
     {
-        public static void GenerateAllMoves(this Board.Board board)
+        public static List<uint> GenerateAllMoves(this Board.Board board)
         {
+            // define list of moves
+            var moveList = new List<uint>();
+
             // Pawn
             // No worry about going off 25-bits: there must be no pawn on the last rank
             if (board.CurrentTurn == Turn.Sente)
@@ -19,9 +24,11 @@ namespace GoneuraOu.Logic
                     var target = sentePawnTargets.Lsb1();
                     var source = target + Constants.BoardSize;
                     var promote = target <= (int)Square.S1A;
-                    Console.WriteLine($"{Constants.SquareCoords[source]}{Constants.SquareCoords[target]}" +
-                                      (promote ? "+" : ""));
-                    sentePawnTargets ^= (uint)1 << target;
+                    moveList.Add(MoveEncode.EncodeMove(source, target, (int)Piece.SentePawn,
+                        Convert.ToInt32(promote), 0,
+                        Convert.ToInt32(board.Occupancies[(int)Turn.Gote].GetBitAt(target))));
+
+                    Utils.ForcePopBit(ref sentePawnTargets, target);
                 }
             }
             else
@@ -33,10 +40,11 @@ namespace GoneuraOu.Logic
                     var target = gotePawnTargets.Lsb1();
                     var source = target - Constants.BoardSize;
                     var promote = target >= (int)Square.S5E;
-                    Console.WriteLine($"{Constants.SquareCoords[source]}{Constants.SquareCoords[target]}" +
-                                      (promote ? "+" : ""));
+                    moveList.Add(MoveEncode.EncodeMove(source, target, (int)Piece.GotePawn,
+                        Convert.ToInt32(promote), 0,
+                        Convert.ToInt32(board.Occupancies[(int)Turn.Sente].GetBitAt(target))));
 
-                    gotePawnTargets ^= (uint)1 << target;
+                    Utils.ForcePopBit(ref gotePawnTargets, target);
                 }
             }
 
@@ -50,11 +58,14 @@ namespace GoneuraOu.Logic
                     while (attacks != 0)
                     {
                         var target = attacks.Lsb1();
-                        Console.WriteLine($"{Constants.SquareCoords[source]}{Constants.SquareCoords[target]}");
-                        attacks ^= (uint)1 << target;
+                        moveList.Add(MoveEncode.EncodeMove(source, target,
+                            (int)(board.CurrentTurn == Turn.Sente ? Piece.SenteGold : Piece.GoteGold),
+                            0, 0,
+                            Convert.ToInt32(board.Occupancies[(int)board.CurrentTurn ^ 1].GetBitAt(target))));
+                        Utils.ForcePopBit(ref attacks, target);
                     }
 
-                    bits ^= (uint)1 << source;
+                    Utils.ForcePopBit(ref bits, source);
                 }
             }
 
@@ -70,14 +81,24 @@ namespace GoneuraOu.Logic
                 {
                     var source = bits.Lsb1();
                     var attacks = Attacks.GoldAttacks[source] & ~board.Occupancies[(int)board.CurrentTurn];
+                    var pt = board
+                        .Bitboards[(int)(board.CurrentTurn == Turn.Sente ? Piece.SenteTokin : Piece.GoteTokin)]
+                        .GetBitAt(source)
+                        ? board.CurrentTurn == Turn.Sente ? Piece.SenteTokin : Piece.GoteTokin
+                        : board.CurrentTurn == Turn.Sente
+                            ? Piece.SentePromotedSilver
+                            : Piece.GotePromotedSilver;
                     while (attacks != 0)
                     {
                         var target = attacks.Lsb1();
-                        Console.WriteLine($"{Constants.SquareCoords[source]}{Constants.SquareCoords[target]}");
-                        attacks ^= (uint)1 << target;
+                        moveList.Add(MoveEncode.EncodeMove(source, target,
+                            (int)pt,
+                            0, 0,
+                            Convert.ToInt32(board.Occupancies[(int)board.CurrentTurn ^ 1].GetBitAt(target))));
+                        Utils.ForcePopBit(ref attacks, target);
                     }
 
-                    bits ^= (uint)1 << source;
+                    Utils.ForcePopBit(ref bits, source);
                 }
             }
 
@@ -95,12 +116,14 @@ namespace GoneuraOu.Logic
                         var promote = board.CurrentTurn == Turn.Sente
                             ? target <= (int)Square.S1A
                             : target >= (int)Square.S5E;
-                        Console.WriteLine($"{Constants.SquareCoords[source]}{Constants.SquareCoords[target]}" +
-                                          (promote ? "+" : ""));
-                        attacks ^= (uint)1 << target;
+                        moveList.Add(MoveEncode.EncodeMove(source, target,
+                            (int)(board.CurrentTurn == Turn.Sente ? Piece.SenteSilver : Piece.GoteSilver),
+                            Convert.ToInt32(promote), 0,
+                            Convert.ToInt32(board.Occupancies[(int)board.CurrentTurn ^ 1].GetBitAt(target))));
+                        Utils.ForcePopBit(ref attacks, target);
                     }
 
-                    bits ^= (uint)1 << source;
+                    Utils.ForcePopBit(ref bits, source);
                 }
             }
 
@@ -114,11 +137,14 @@ namespace GoneuraOu.Logic
                     while (attacks != 0)
                     {
                         var target = attacks.Lsb1();
-                        Console.WriteLine($"{Constants.SquareCoords[source]}{Constants.SquareCoords[target]}");
-                        attacks ^= (uint)1 << target;
+                        moveList.Add(MoveEncode.EncodeMove(source, target,
+                            (int)(board.CurrentTurn == Turn.Sente ? Piece.SenteKing : Piece.GoteKing),
+                            0, 0,
+                            Convert.ToInt32(board.Occupancies[(int)board.CurrentTurn ^ 1].GetBitAt(target))));
+                        Utils.ForcePopBit(ref attacks, target);
                     }
 
-                    bits ^= (uint)1 << source;
+                    Utils.ForcePopBit(ref bits, source);
                 }
             }
 
@@ -137,12 +163,14 @@ namespace GoneuraOu.Logic
                         var promote = board.CurrentTurn == Turn.Sente
                             ? target <= (int)Square.S1A
                             : target >= (int)Square.S5E;
-                        Console.WriteLine($"{Constants.SquareCoords[source]}{Constants.SquareCoords[target]}" +
-                                          (promote ? "+" : ""));
-                        attacks ^= (uint)1 << target;
+                        moveList.Add(MoveEncode.EncodeMove(source, target,
+                            (int)(board.CurrentTurn == Turn.Sente ? Piece.SenteRook : Piece.GoteRook),
+                            Convert.ToInt32(promote), 0,
+                            Convert.ToInt32(board.Occupancies[(int)board.CurrentTurn ^ 1].GetBitAt(target))));
+                        Utils.ForcePopBit(ref attacks, target);
                     }
 
-                    bits ^= (uint)1 << source;
+                    Utils.ForcePopBit(ref bits, source);
                 }
             }
 
@@ -161,12 +189,14 @@ namespace GoneuraOu.Logic
                         var promote = board.CurrentTurn == Turn.Sente
                             ? target <= (int)Square.S1A
                             : target >= (int)Square.S5E;
-                        Console.WriteLine($"{Constants.SquareCoords[source]}{Constants.SquareCoords[target]}" +
-                                          (promote ? "+" : ""));
-                        attacks ^= (uint)1 << target;
+                        moveList.Add(MoveEncode.EncodeMove(source, target,
+                            (int)(board.CurrentTurn == Turn.Sente ? Piece.SenteBishop : Piece.GoteBishop),
+                            Convert.ToInt32(promote), 0,
+                            Convert.ToInt32(board.Occupancies[(int)board.CurrentTurn ^ 1].GetBitAt(target))));
+                        Utils.ForcePopBit(ref attacks, target);
                     }
 
-                    bits ^= (uint)1 << source;
+                    Utils.ForcePopBit(ref bits, source);
                 }
             }
 
@@ -182,11 +212,14 @@ namespace GoneuraOu.Logic
                     while (attacks != 0)
                     {
                         var target = attacks.Lsb1();
-                        Console.WriteLine($"{Constants.SquareCoords[source]}{Constants.SquareCoords[target]}");
-                        attacks ^= (uint)1 << target;
+                        moveList.Add(MoveEncode.EncodeMove(source, target,
+                            (int)(board.CurrentTurn == Turn.Sente ? Piece.SenteDragon : Piece.GoteDragon),
+                            0, 0,
+                            Convert.ToInt32(board.Occupancies[(int)board.CurrentTurn ^ 1].GetBitAt(target))));
+                        Utils.ForcePopBit(ref attacks, target);
                     }
 
-                    bits ^= (uint)1 << source;
+                    Utils.ForcePopBit(ref bits, source);
                 }
             }
 
@@ -202,11 +235,14 @@ namespace GoneuraOu.Logic
                     while (attacks != 0)
                     {
                         var target = attacks.Lsb1();
-                        Console.WriteLine($"{Constants.SquareCoords[source]}{Constants.SquareCoords[target]}");
-                        attacks ^= (uint)1 << target;
+                        moveList.Add(MoveEncode.EncodeMove(source, target,
+                            (int)(board.CurrentTurn == Turn.Sente ? Piece.SenteHorse : Piece.GoteHorse),
+                            0, 0,
+                            Convert.ToInt32(board.Occupancies[(int)board.CurrentTurn ^ 1].GetBitAt(target))));
+                        Utils.ForcePopBit(ref attacks, target);
                     }
 
-                    bits ^= (uint)1 << source;
+                    Utils.ForcePopBit(ref bits, source);
                 }
             }
 
@@ -222,7 +258,7 @@ namespace GoneuraOu.Logic
                 while (freeBits != 0)
                 {
                     var target = freeBits.Lsb1();
-                    freeBits ^= (uint)1 << target;
+                    Utils.ForcePopBit(ref freeBits, target);
 
                     // No pawn drops at last rank!
                     if (pi / 2 == (int)Piece.SentePawn)
@@ -241,9 +277,13 @@ namespace GoneuraOu.Logic
                         }
                     }
 
-                    Console.WriteLine($"{Constants.AsciiPieces[pi / 2]}*{Constants.SquareCoords[target]}");
+                    moveList.Add(MoveEncode.EncodeMove(0, target,
+                        pi / 2,
+                        0, 1, 0));
                 }
             }
+
+            return moveList;
         }
     }
 }

@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 using GoneuraOu.Bitboard;
 using GoneuraOu.Common;
+using GoneuraOu.Logic;
 
 namespace GoneuraOu.Board
 {
@@ -18,6 +20,7 @@ namespace GoneuraOu.Board
     {
         public uint[] Bitboards = new uint[2 * 10];
         public uint[] Occupancies = new uint[3];
+        public uint?[] PieceLoc = new uint?[25];
 
         /*
          *  You can only have max 10 pieces per player in pocket:
@@ -32,29 +35,12 @@ namespace GoneuraOu.Board
 
         public Board()
         {
-            /*
-                CurrentTurn = Turn.Sente;
-
-                Bitboards[(int) Piece.SentePawn] = Square.A2.SquareToBit();
-                Bitboards[(int) Piece.SenteKing] = Square.A1.SquareToBit();
-                Bitboards[(int) Piece.SenteGold] = Square.B1.SquareToBit();
-                Bitboards[(int) Piece.SenteSilver] = Square.C1.SquareToBit();
-                Bitboards[(int) Piece.SenteBishop] = Square.D1.SquareToBit();
-                Bitboards[(int) Piece.SenteRook] = Square.E1.SquareToBit();
-
-                Bitboards[(int) Piece.GotePawn] = Square.E4.SquareToBit();
-                Bitboards[(int) Piece.GoteKing] = Square.E5.SquareToBit();
-                Bitboards[(int) Piece.GoteGold] = Square.D5.SquareToBit();
-                Bitboards[(int) Piece.GoteSilver] = Square.C5.SquareToBit();
-                Bitboards[(int) Piece.GoteBishop] = Square.B5.SquareToBit();
-                Bitboards[(int) Piece.GoteRook] = Square.A5.SquareToBit();
-
-                Occupancies[(int) Turn.Sente] = Ranks.One | Square.A2.SquareToBit();
-                Occupancies[(int) Turn.Gote] = Ranks.Five | Square.E4.SquareToBit();
-                Occupancies[2] = Occupancies[(int) Turn.Sente] | Occupancies[(int) Turn.Gote];
-            */
-
             LoadSFen(StartingSFen);
+        }
+
+        public Board(string sfen)
+        {
+            LoadSFen(sfen);
         }
 
         public void LoadSFen(string sfen)
@@ -100,6 +86,7 @@ namespace GoneuraOu.Board
                         Bitboards[(int)pt] |= sqbb;
                         Occupancies[(int)pt.PieceTurn()] |= sqbb;
                         Occupancies[2] |= sqbb;
+                        PieceLoc[square] = (uint)pt;
                         file++;
                         break;
                 }
@@ -125,39 +112,93 @@ namespace GoneuraOu.Board
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Board ShallowCopy()
+        {
+            var copy = (Board)MemberwiseClone();
+            copy.Bitboards = (uint[])Bitboards.Clone();
+            copy.Occupancies = (uint[])Occupancies.Clone();
+            copy.Pocket = (bool[,])Pocket.Clone();
+            copy.PieceLoc = (uint?[])PieceLoc.Clone();
+            return copy;
+        }
+
+        /// <summary>
+        /// Performs the move on a new board
+        /// </summary>
+        /// <returns>New board with the move made</returns>
+        public Board MakeMove(uint move)
+        {
+            var nb = ShallowCopy();
+
+            var source = move.GetSource();
+            var target = move.GetTarget();
+            var pt = move.GetPieceType();
+            var promote = move.GetPromote();
+            var drop = move.GetDrop();
+            var capture = move.GetCapture();
+
+            // handle drop
+            if (drop == 1)
+            {
+                Utils.ForceSetBit(ref nb.Bitboards[pt], (int)target);
+                PieceLoc[target] = pt;
+            }
+            else
+            {
+                Utils.ForcePopBit(ref nb.Bitboards[pt], (int)source);
+                Utils.ForceSetBit(ref nb.Bitboards[promote == 1 ? Constants.PromotesTo[pt] : pt], (int)target);
+
+                // handle capture
+                if (capture == 1)
+                {
+                    Utils.ForcePopBit(ref nb.Bitboards[PieceLoc[target].GetValueOrDefault(0)], (int)source);
+                }
+
+                PieceLoc[source] = null;
+                PieceLoc[target] = pt;
+            }
+
+            return nb;
+        }
+
         public void PrintBoard()
         {
             for (var rank = 0; rank < Constants.BoardSize; rank++)
             {
                 for (var file = 0; file < Constants.BoardSize; file++)
                 {
-                    if (file == 0)
-                    {
-                        Console.Write($"{Constants.Alphabets[rank]} ");
-                    }
+                    Console.Write("+---");
+                }
 
+                Console.WriteLine('+');
+                Console.Write('|');
+
+                for (var file = 0; file < Constants.BoardSize; file++)
+                {
                     var square = rank * Constants.BoardSize + file;
 
-                    int? piece = null;
+                    var piece = PieceLoc[square];
 
-                    for (var pi = 0; pi <= (int)Piece.GoteHorse; pi++)
-                    {
-                        var bb = Bitboards[pi];
-                        if (!bb.GetBitAt(square)) continue;
-                        piece = pi;
-                        break;
-                    }
-
-                    Console.Write(piece.HasValue ? Constants.AsciiPieces[piece.Value].PadLeft(2, ' ') : " .");
-                    Console.Write(file == Constants.BoardSize - 1 ? '\n' : ' ');
+                    Console.Write(piece.HasValue ? Constants.AsciiPieces[piece.Value].PadLeft(2, ' ') : "  ");
+                    Console.Write(" |");
                 }
+
+                Console.WriteLine($" {Constants.Alphabets[rank]}");
             }
 
-            Console.Write("   ");
+            for (var file = 0; file < Constants.BoardSize; file++)
+            {
+                Console.Write("+---");
+            }
+
+            Console.WriteLine('+');
+            Console.Write("  ");
+
             for (var file = 0; file < Constants.BoardSize; file++)
             {
                 Console.Write(5 - file);
-                Console.Write(file == Constants.BoardSize - 1 ? '\n' : "  ");
+                Console.Write(file == Constants.BoardSize - 1 ? '\n' : "   ");
             }
 
             for (var turn = 0; turn < 2; turn++)

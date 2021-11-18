@@ -10,7 +10,10 @@
 
         public const int OccupancySize = MaxRookOccupancy;
 
-        public static readonly char[] Alphabets = { 'a', 'b', 'c', 'd', 'e' };
+        public static readonly char[] Alphabets =
+        {
+            'a', 'b', 'c', 'd', 'e'
+        };
 
         public static readonly string[] SquareCoords =
         {
@@ -19,6 +22,14 @@
             "5c", "4c", "3c", "2c", "1c",
             "5d", "4d", "3d", "2d", "1d",
             "5e", "4e", "3e", "2e", "1e",
+        };
+
+        public static readonly int[] PromotesTo =
+        {
+            (int)Piece.SenteTokin, 0, (int)Piece.SentePromotedSilver, (int)Piece.SenteDragon, (int)Piece.SenteHorse,
+            0, 0, 0, 0, 0,
+            (int)Piece.GoteTokin, 0, (int)Piece.GotePromotedSilver, (int)Piece.GoteDragon, (int)Piece.GoteHorse,
+            0, 0, 0, 0, 0
         };
 
         public static readonly string[] AsciiPieces =
