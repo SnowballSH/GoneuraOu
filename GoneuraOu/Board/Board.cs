@@ -139,6 +139,7 @@ namespace GoneuraOu.Board
             if (drop == 1)
             {
                 Utils.ForceSetBit(ref nb.Bitboards[pt], (int)target);
+                Utils.ForceSetBit(ref nb.Occupancies[(int)nb.CurrentTurn], (int)target);
                 nb.PieceLoc[target] = pt;
             }
             else
@@ -149,17 +150,25 @@ namespace GoneuraOu.Board
                 var capture = move.GetCapture();
 
                 Utils.ForcePopBit(ref nb.Bitboards[pt], (int)source);
-                Utils.ForceSetBit(ref nb.Bitboards[promote == 1 ? Constants.PromotesTo[pt] : pt], (int)target);
+                Utils.ForcePopBit(ref nb.Occupancies[(int)nb.CurrentTurn], (int)source);
+
+                var ppt = promote == 1 ? Constants.PromotesTo[pt] : (int)pt;
+                Utils.ForceSetBit(ref nb.Bitboards[ppt], (int)target);
+                Utils.ForceSetBit(ref nb.Occupancies[(int)nb.CurrentTurn], (int)target);
 
                 // handle capture
                 if (capture == 1)
                 {
-                    Utils.ForcePopBit(ref nb.Bitboards[nb.PieceLoc[target].GetValueOrDefault(0)], (int)source);
+                    Utils.ForcePopBit(ref nb.Bitboards[nb.PieceLoc[target].GetValueOrDefault(0)], (int)target);
+                    Utils.ForcePopBit(ref nb.Occupancies[(int)nb.CurrentTurn ^ 1], (int)target);
                 }
 
                 nb.PieceLoc[source] = null;
                 nb.PieceLoc[target] = pt;
             }
+
+            nb.Occupancies[2] = nb.Occupancies[0] | nb.Occupancies[1];
+            nb.CurrentTurn = (Turn)((int)nb.CurrentTurn ^ 1);
 
             return nb;
         }
