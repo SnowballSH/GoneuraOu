@@ -139,7 +139,7 @@ namespace GoneuraOu.Board
             if (drop == 1)
             {
                 Utils.ForceSetBit(ref nb.Bitboards[pt], (int)target);
-                PieceLoc[target] = pt;
+                nb.PieceLoc[target] = pt;
             }
             else
             {
@@ -154,11 +154,11 @@ namespace GoneuraOu.Board
                 // handle capture
                 if (capture == 1)
                 {
-                    Utils.ForcePopBit(ref nb.Bitboards[PieceLoc[target].GetValueOrDefault(0)], (int)source);
+                    Utils.ForcePopBit(ref nb.Bitboards[nb.PieceLoc[target].GetValueOrDefault(0)], (int)source);
                 }
 
-                PieceLoc[source] = null;
-                PieceLoc[target] = pt;
+                nb.PieceLoc[source] = null;
+                nb.PieceLoc[target] = pt;
             }
 
             return nb;
