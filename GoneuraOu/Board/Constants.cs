@@ -32,6 +32,12 @@
             0, 0, 0, 0, 0
         };
 
+        public static readonly int[] CompressBasics =
+        {
+            0, 1, 2, 3, 4, -1, 0, 2, 3, 4,
+            0, 1, 2, 3, 4, -1, 0, 2, 3, 4
+        };
+
         public static readonly string[] AsciiPieces =
         {
             "P", "G", "S", "R", "B", "K", "+P", "+S", "+R", "+B",

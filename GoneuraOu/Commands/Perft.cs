@@ -15,13 +15,7 @@ namespace GoneuraOu.Commands
             {
                 var usi = move.ToUsi();
                 var nb = board.MakeMove(move);
-
-                if (nb == null)
-                {
-                    Console.WriteLine($"{usi}: fail");
-                    continue;
-                }
-
+                if (nb == null) continue;
                 var nodes = nb.PerftInternal(depth - 1);
                 Console.WriteLine($"{usi}: {nodes}");
                 total += nodes;
@@ -32,19 +26,12 @@ namespace GoneuraOu.Commands
 
         public static int PerftInternal(this Board.Board board, uint depth)
         {
-            switch (depth)
-            {
-                case 0:
-                    return 1;
-                default:
-                {
-                    var pseudoLegalMoves = board.GeneratePseudoLegalMoves();
+            if (depth == 0) return 1;
+            var pseudoLegalMoves = board.GeneratePseudoLegalMoves();
 
-                    return pseudoLegalMoves
-                        .Select(move => board.MakeMove(move))
-                        .Sum(nb => nb?.PerftInternal(depth - 1) ?? 0);
-                }
-            }
+            return pseudoLegalMoves
+                .Select(move => board.MakeMove(move))
+                .Sum(nb => nb?.PerftInternal(depth - 1) ?? 0);
         }
     }
 }

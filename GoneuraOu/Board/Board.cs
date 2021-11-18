@@ -31,6 +31,7 @@ namespace GoneuraOu.Board
 
         public Turn CurrentTurn;
         public (int, int) KingSquares;
+        public bool[,] PawnFiles = new bool[2, 5];
 
         public const string StartingSFen = "rbsgk/4p/5/P4/KGSBR[-] w - 1";
 
@@ -49,6 +50,7 @@ namespace GoneuraOu.Board
             Array.Clear(Bitboards);
             Array.Clear(Occupancies);
             Array.Clear(Pocket);
+            Array.Clear(PawnFiles);
 
             var promoteNext = false;
             var rank = 0;
@@ -93,6 +95,14 @@ namespace GoneuraOu.Board
                         {
                             KingSquares.Item2 = square;
                         }
+                        else if (pt == Piece.SentePawn)
+                        {
+                            PawnFiles[0, file] = true;
+                        }
+                        else if (pt == Piece.GotePawn)
+                        {
+                            PawnFiles[1, file] = true;
+                        }
 
                         Bitboards[(int)pt] |= sqbb;
                         Occupancies[(int)pt.PieceTurn()] |= sqbb;
@@ -104,7 +114,7 @@ namespace GoneuraOu.Board
 
                 continue;
 
-                parsePocket:
+            parsePocket:
                 if (ch is ']' or '-') break;
                 var pocketPt = ((int)ch).ToPiece(false);
                 if (!Pocket[(int)pocketPt.PieceTurn(), pocketPt.PieceType() * 2])
@@ -131,6 +141,7 @@ namespace GoneuraOu.Board
             copy.Occupancies = (uint[])Occupancies.Clone();
             copy.Pocket = (bool[,])Pocket.Clone();
             copy.PieceLoc = (uint?[])PieceLoc.Clone();
+            copy.PawnFiles = (bool[,])PawnFiles.Clone();
             return copy;
         }
 
@@ -152,6 +163,25 @@ namespace GoneuraOu.Board
                 Utils.ForceSetBit(ref nb.Bitboards[pt], (int)target);
                 Utils.ForceSetBit(ref nb.Occupancies[(int)nb.CurrentTurn], (int)target);
                 nb.PieceLoc[target] = pt;
+                if (pt == (int)Piece.SentePawn)
+                {
+                    if (nb.PawnFiles[0, target % 5]) return null;
+                    nb.PawnFiles[0, target % 5] = true;
+                }
+                else if (pt == (int)Piece.GotePawn)
+                {
+                    if (nb.PawnFiles[1, target % 5]) return null;
+                    nb.PawnFiles[1, target % 5] = true;
+                }
+
+                if (nb.Pocket[(int)nb.CurrentTurn, pt * 2])
+                {
+                    nb.Pocket[(int)nb.CurrentTurn, pt * 2] = false;
+                }
+                else
+                {
+                    nb.Pocket[(int)nb.CurrentTurn, pt * 2 + 1] = false;
+                }
             }
             else
             {
@@ -179,8 +209,30 @@ namespace GoneuraOu.Board
                 // handle capture
                 if (capture == 1)
                 {
-                    Utils.ForcePopBit(ref nb.Bitboards[nb.PieceLoc[target].GetValueOrDefault(0)], (int)target);
+                    var plt = nb.PieceLoc[target].GetValueOrDefault(0);
+
+                    if (plt is (uint)Piece.SenteKing or (uint)Piece.GoteKing) return null;
+
+                    Utils.ForcePopBit(ref nb.Bitboards[plt], (int)target);
                     Utils.ForcePopBit(ref nb.Occupancies[nb.CurrentTurn.InvertInt()], (int)target);
+
+                    if (plt == (int)Piece.SentePawn)
+                    {
+                        nb.PawnFiles[0, source % 5] = false;
+                    }
+                    else if (plt == (int)Piece.GotePawn)
+                    {
+                        nb.PawnFiles[1, source % 5] = false;
+                    }
+
+                    if (nb.Pocket[(int)nb.CurrentTurn, Constants.CompressBasics[plt] * 2])
+                    {
+                        nb.Pocket[(int)nb.CurrentTurn, Constants.CompressBasics[plt] * 2 + 1] = true;
+                    }
+                    else
+                    {
+                        nb.Pocket[(int)nb.CurrentTurn, Constants.CompressBasics[plt] * 2] = true;
+                    }
                 }
 
                 nb.PieceLoc[source] = null;

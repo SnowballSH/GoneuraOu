@@ -245,9 +245,9 @@ namespace GoneuraOu.Logic
                     var target = freeBits.Lsb1();
                     Utils.ForcePopBit(ref freeBits, target);
 
-                    // No pawn drops at last rank!
                     if (pi / 2 == (int)Piece.SentePawn)
                     {
+                        // No pawn drops at last rank!
                         if (board.CurrentTurn == Turn.Sente)
                         {
                             var inLastRank = target <= (int)Square.S1A;
