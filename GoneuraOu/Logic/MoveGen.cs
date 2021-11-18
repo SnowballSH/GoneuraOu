@@ -21,24 +21,27 @@ namespace GoneuraOu.Logic
                     while (attacks != 0)
                     {
                         var target = attacks.Lsb1();
-                        
+
                         var promote = board.CurrentTurn == Turn.Sente
                             ? target <= (int)Square.S1A
                             : target >= (int)Square.S5E;
-                        
-                        yield return MoveEncode.EncodeMove(source, target,
-                            (int)(board.CurrentTurn == Turn.Sente ? Piece.SentePawn : Piece.GotePawn),
-                            0, 0,
-                            Convert.ToInt32(board.Occupancies[(int)board.CurrentTurn ^ 1].GetBitAt(target)));
 
                         if (promote)
                         {
+                            // MUST PROMOTE!!
                             yield return MoveEncode.EncodeMove(source, target,
                                 (int)(board.CurrentTurn == Turn.Sente ? Piece.SentePawn : Piece.GotePawn),
                                 1, 0,
                                 Convert.ToInt32(board.Occupancies[(int)board.CurrentTurn ^ 1].GetBitAt(target)));
                         }
-                        
+                        else
+                        {
+                            yield return MoveEncode.EncodeMove(source, target,
+                                (int)(board.CurrentTurn == Turn.Sente ? Piece.SentePawn : Piece.GotePawn),
+                                0, 0,
+                                Convert.ToInt32(board.Occupancies[(int)board.CurrentTurn ^ 1].GetBitAt(target)));
+                        }
+
                         Utils.ForcePopBit(ref attacks, target);
                     }
 
@@ -79,7 +82,8 @@ namespace GoneuraOu.Logic
                 while (bits != 0)
                 {
                     var source = bits.Lsb1();
-                    var attacks = Attacks.GoldAttacks[(int)board.CurrentTurn, source] & ~board.Occupancies[(int)board.CurrentTurn];
+                    var attacks = Attacks.GoldAttacks[(int)board.CurrentTurn, source] &
+                                  ~board.Occupancies[(int)board.CurrentTurn];
                     var pt = board
                         .Bitboards[(int)(board.CurrentTurn == Turn.Sente ? Piece.SenteTokin : Piece.GoteTokin)]
                         .GetBitAt(source)
@@ -108,14 +112,15 @@ namespace GoneuraOu.Logic
                 while (bits != 0)
                 {
                     var source = bits.Lsb1();
-                    var attacks = Attacks.SilverAttacks[(int)board.CurrentTurn, source] & ~board.Occupancies[(int)board.CurrentTurn];
+                    var attacks = Attacks.SilverAttacks[(int)board.CurrentTurn, source] &
+                                  ~board.Occupancies[(int)board.CurrentTurn];
                     while (attacks != 0)
                     {
                         var target = attacks.Lsb1();
                         var promote = board.CurrentTurn == Turn.Sente
-                            ? target <= (int)Square.S1A
-                            : target >= (int)Square.S5E;
-                        
+                            ? target <= (int)Square.S1A || source <= (int)Square.S1A
+                            : target >= (int)Square.S5E || source >= (int)Square.S5E;
+
                         yield return MoveEncode.EncodeMove(source, target,
                             (int)(board.CurrentTurn == Turn.Sente ? Piece.SenteSilver : Piece.GoteSilver),
                             0, 0,
@@ -170,9 +175,9 @@ namespace GoneuraOu.Logic
                     {
                         var target = attacks.Lsb1();
                         var promote = board.CurrentTurn == Turn.Sente
-                            ? target <= (int)Square.S1A
-                            : target >= (int)Square.S5E;
-                        
+                            ? target <= (int)Square.S1A || source <= (int)Square.S1A
+                            : target >= (int)Square.S5E || source >= (int)Square.S5E;
+
                         yield return MoveEncode.EncodeMove(source, target,
                             (int)(board.CurrentTurn == Turn.Sente ? Piece.SenteRook : Piece.GoteRook),
                             0, 0,
@@ -185,7 +190,7 @@ namespace GoneuraOu.Logic
                                 1, 0,
                                 Convert.ToInt32(board.Occupancies[(int)board.CurrentTurn ^ 1].GetBitAt(target)));
                         }
-                        
+
                         Utils.ForcePopBit(ref attacks, target);
                     }
 
@@ -206,9 +211,9 @@ namespace GoneuraOu.Logic
                     {
                         var target = attacks.Lsb1();
                         var promote = board.CurrentTurn == Turn.Sente
-                            ? target <= (int)Square.S1A
-                            : target >= (int)Square.S5E;
-                        
+                            ? target <= (int)Square.S1A || source <= (int)Square.S1A
+                            : target >= (int)Square.S5E || source >= (int)Square.S5E;
+
                         yield return MoveEncode.EncodeMove(source, target,
                             (int)(board.CurrentTurn == Turn.Sente ? Piece.SenteBishop : Piece.GoteBishop),
                             0, 0,
@@ -221,7 +226,7 @@ namespace GoneuraOu.Logic
                                 1, 0,
                                 Convert.ToInt32(board.Occupancies[(int)board.CurrentTurn ^ 1].GetBitAt(target)));
                         }
-                        
+
                         Utils.ForcePopBit(ref attacks, target);
                     }
 
