@@ -105,7 +105,7 @@ namespace GoneuraOu.Board
 
                 continue;
 
-                parsePocket:
+            parsePocket:
                 if (ch is ']' or '-') break;
                 var pocketPt = ((int)ch).ToPiece(false);
                 if (!Pocket[(int)pocketPt.PieceTurn(), pocketPt.PieceType() * 2])
@@ -151,9 +151,10 @@ namespace GoneuraOu.Board
             // handle drop
             if (drop == 1)
             {
-                Utils.ForceSetBit(ref nb.Bitboards[pt], (int)target);
+                var tt = (uint)nb.CurrentTurn * 10;
+                Utils.ForceSetBit(ref nb.Bitboards[pt + tt], (int)target);
                 Utils.ForceSetBit(ref nb.Occupancies[(int)nb.CurrentTurn], (int)target);
-                nb.PieceLoc[target] = pt;
+                nb.PieceLoc[target] = pt + tt;
                 if (pt == (int)Piece.SentePawn)
                 {
                     if (nb.CurrentTurn == Turn.Sente)
@@ -176,8 +177,6 @@ namespace GoneuraOu.Board
                 {
                     nb.Pocket[(int)nb.CurrentTurn, pt * 2 + 1] = false;
                 }
-
-                nb.Occupancies[2] = nb.Occupancies[0] | nb.Occupancies[1];
             }
             else
             {
@@ -205,11 +204,11 @@ namespace GoneuraOu.Board
 
                     if (plt == (int)Piece.SentePawn)
                     {
-                        nb.PawnFiles[0, source % 5] = false;
+                        nb.PawnFiles[0, target % 5] = false;
                     }
                     else if (plt == (int)Piece.GotePawn)
                     {
-                        nb.PawnFiles[1, source % 5] = false;
+                        nb.PawnFiles[1, target % 5] = false;
                     }
 
                     if (nb.Pocket[(int)nb.CurrentTurn, Constants.CompressBasics[plt] * 2])
@@ -223,19 +222,19 @@ namespace GoneuraOu.Board
                 }
 
                 nb.PieceLoc[source] = null;
-                nb.PieceLoc[target] = pt;
+                nb.PieceLoc[target] = (uint)ppt;
+            }
 
-                nb.Occupancies[2] = nb.Occupancies[0] | nb.Occupancies[1];
+            nb.Occupancies[2] = nb.Occupancies[0] | nb.Occupancies[1];
 
-                // Is king in check?
-                if (nb.IsAttacked(
-                    nb.CurrentTurn == Turn.Sente
-                        ? nb.Bitboards[(int)Piece.SenteKing].Lsb1()
-                        : nb.Bitboards[(int)Piece.GoteKing].Lsb1(),
-                    nb.CurrentTurn.InvertInt()))
-                {
-                    return null;
-                }
+            // Is king in check?
+            if (nb.IsAttacked(
+                nb.CurrentTurn == Turn.Sente
+                    ? nb.Bitboards[(int)Piece.SenteKing].Lsb1()
+                    : nb.Bitboards[(int)Piece.GoteKing].Lsb1(),
+                nb.CurrentTurn.InvertInt()))
+            {
+                return null;
             }
 
             nb.CurrentTurn = nb.CurrentTurn.Invert();
