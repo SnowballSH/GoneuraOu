@@ -285,7 +285,9 @@ namespace GoneuraOu.Logic
             // bottom left
             for (r = tr - 1, f = tf - 1; r >= 0 && f >= 0; r--, f--)
             {
-                Utils.ForceSetBit(ref attacks, r * Constants.BoardSize + f);
+                var k = (uint)(1 << (r * Constants.BoardSize + f));
+                attacks |= k;
+                if ((k & block) != 0) break;
             }
 
             return attacks;

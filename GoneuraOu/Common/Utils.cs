@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System;
+using System.Runtime.CompilerServices;
 using GoneuraOu.Bitboard;
 using GoneuraOu.Board;
 
@@ -28,6 +29,19 @@ namespace GoneuraOu.Common
         public static int InvertInt(this Turn t)
         {
             return (int)t ^ 1;
+        }
+
+        public static void Display<T>(this T[,] matrix)
+        {
+            for (var i = 0; i < matrix.GetLength(0); i++)
+            {
+                for (var j = 0; j < matrix.GetLength(1); j++)
+                {
+                    Console.Write(matrix[i, j] + "\t");
+                }
+
+                Console.WriteLine();
+            }
         }
     }
 }

@@ -30,7 +30,6 @@ namespace GoneuraOu.Board
         public bool[,] Pocket = new bool[2, 10];
 
         public Turn CurrentTurn;
-        public (int, int) KingSquares;
         public bool[,] PawnFiles = new bool[2, 5];
 
         public const string StartingSFen = "rbsgk/4p/5/P4/KGSBR[-] w - 1";
@@ -87,15 +86,7 @@ namespace GoneuraOu.Board
                         var square = rank * Constants.BoardSize + file;
                         var sqbb = square.SquareToBit();
 
-                        if (pt == Piece.SenteKing)
-                        {
-                            KingSquares.Item1 = square;
-                        }
-                        else if (pt == Piece.GoteKing)
-                        {
-                            KingSquares.Item2 = square;
-                        }
-                        else if (pt == Piece.SentePawn)
+                        if (pt == Piece.SentePawn)
                         {
                             PawnFiles[0, file] = true;
                         }
@@ -114,7 +105,7 @@ namespace GoneuraOu.Board
 
                 continue;
 
-            parsePocket:
+                parsePocket:
                 if (ch is ']' or '-') break;
                 var pocketPt = ((int)ch).ToPiece(false);
                 if (!Pocket[(int)pocketPt.PieceTurn(), pocketPt.PieceType() * 2])
@@ -165,13 +156,16 @@ namespace GoneuraOu.Board
                 nb.PieceLoc[target] = pt;
                 if (pt == (int)Piece.SentePawn)
                 {
-                    if (nb.PawnFiles[0, target % 5]) return null;
-                    nb.PawnFiles[0, target % 5] = true;
-                }
-                else if (pt == (int)Piece.GotePawn)
-                {
-                    if (nb.PawnFiles[1, target % 5]) return null;
-                    nb.PawnFiles[1, target % 5] = true;
+                    if (nb.CurrentTurn == Turn.Sente)
+                    {
+                        if (nb.PawnFiles[0, target % 5]) return null;
+                        nb.PawnFiles[0, target % 5] = true;
+                    }
+                    else
+                    {
+                        if (nb.PawnFiles[1, target % 5]) return null;
+                        nb.PawnFiles[1, target % 5] = true;
+                    }
                 }
 
                 if (nb.Pocket[(int)nb.CurrentTurn, pt * 2])
@@ -182,6 +176,8 @@ namespace GoneuraOu.Board
                 {
                     nb.Pocket[(int)nb.CurrentTurn, pt * 2 + 1] = false;
                 }
+
+                nb.Occupancies[2] = nb.Occupancies[0] | nb.Occupancies[1];
             }
             else
             {
@@ -196,15 +192,6 @@ namespace GoneuraOu.Board
                 var ppt = promote == 1 ? Constants.PromotesTo[pt] : (int)pt;
                 Utils.ForceSetBit(ref nb.Bitboards[ppt], (int)target);
                 Utils.ForceSetBit(ref nb.Occupancies[(int)nb.CurrentTurn], (int)target);
-
-                if (ppt == (int)Piece.SenteKing)
-                {
-                    nb.KingSquares.Item1 = (int)target;
-                }
-                else if (ppt == (int)Piece.GoteKing)
-                {
-                    nb.KingSquares.Item2 = (int)target;
-                }
 
                 // handle capture
                 if (capture == 1)
@@ -238,15 +225,19 @@ namespace GoneuraOu.Board
                 nb.PieceLoc[source] = null;
                 nb.PieceLoc[target] = pt;
 
+                nb.Occupancies[2] = nb.Occupancies[0] | nb.Occupancies[1];
+
                 // Is king in check?
-                if (nb.IsAttacked(nb.CurrentTurn == Turn.Sente ? nb.KingSquares.Item1 : nb.KingSquares.Item2,
+                if (nb.IsAttacked(
+                    nb.CurrentTurn == Turn.Sente
+                        ? nb.Bitboards[(int)Piece.SenteKing].Lsb1()
+                        : nb.Bitboards[(int)Piece.GoteKing].Lsb1(),
                     nb.CurrentTurn.InvertInt()))
                 {
                     return null;
                 }
             }
 
-            nb.Occupancies[2] = nb.Occupancies[0] | nb.Occupancies[1];
             nb.CurrentTurn = nb.CurrentTurn.Invert();
 
             return nb;
