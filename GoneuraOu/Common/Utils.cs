@@ -43,5 +43,15 @@ namespace GoneuraOu.Common
                 Console.WriteLine();
             }
         }
+
+        public static void Display<T>(this T[] matrix)
+        {
+            Console.Write("[");
+            for (var i = 0; i < matrix.Length; i++)
+            {
+                Console.Write(matrix[i] + ", ");
+            }
+            Console.WriteLine("]");
+        }
     }
 }

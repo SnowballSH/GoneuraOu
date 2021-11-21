@@ -5,7 +5,15 @@ using GoneuraOu.Board;
 
 namespace GoneuraOu.Bitboard
 {
-    // Implements uint (32-bit) for 5x5 board
+    /// Implements uint (32-bit) for 5x5 board
+    // This bitboard is a little weird because << shifts to the right and >> shifts to the left
+    // +----+----+----+
+    // |>> 9|>> 8|>> 7|
+    // +----+----+----+
+    // |>> 1|    |<< 1|
+    // +----+----+----+
+    // |<< 7|<< 8|<< 9|
+    // +----+----+----+
     public static class Bitboard
     {
         public const uint LegalBitboard = 0x1ffffff;
@@ -92,7 +100,7 @@ namespace GoneuraOu.Bitboard
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int Lsb1(this uint board)
+        public static int BitScan(this uint board)
         {
             return BitOperations.TrailingZeroCount(board);
         }

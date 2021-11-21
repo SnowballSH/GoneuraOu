@@ -10,9 +10,6 @@
         public const uint C = 0b00100_00100_00100_00100_00100;
         public const uint D = 0b01000_01000_01000_01000_01000;
         public const uint E = 0b10000_10000_10000_10000_10000;
-
-        public const uint Flank = A | E;
-        public const uint NotFlank = B | C | D;
     }
 
     public static class Ranks

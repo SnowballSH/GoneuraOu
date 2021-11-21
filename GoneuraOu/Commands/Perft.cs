@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Linq;
 using GoneuraOu.Common;
 using GoneuraOu.Logic;
@@ -9,6 +10,9 @@ namespace GoneuraOu.Commands
     {
         public static void PerftRootPrint(this Board.Board board, uint depth)
         {
+            var timer = new Stopwatch();
+            timer.Start();
+
             var legalMoves = board.GeneratePseudoLegalMoves();
             var total = 0;
             foreach (var move in legalMoves)
@@ -22,16 +26,25 @@ namespace GoneuraOu.Commands
             }
 
             Console.WriteLine($"\nTotal Nodes: {total}");
+            Console.WriteLine($"Total Time: {timer.ElapsedMilliseconds}ms");
+            Console.WriteLine($"KNPS: {total / timer.Elapsed.TotalSeconds / 1000}");
         }
 
         public static int PerftInternal(this Board.Board board, uint depth)
         {
             if (depth == 0) return 1;
+
             var pseudoLegalMoves = board.GeneratePseudoLegalMoves();
 
-            return pseudoLegalMoves
-                .Select(move => board.MakeMove(move))
-                .Sum(nb => nb?.PerftInternal(depth - 1) ?? 0);
+            var nodes = 0;
+
+            foreach (var move in pseudoLegalMoves)
+            {
+                var nb = board.MakeMove(move);
+                nodes += nb?.PerftInternal(depth - 1) ?? 0;
+            }
+
+            return nodes;
         }
     }
 }

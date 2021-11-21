@@ -53,7 +53,7 @@ namespace GoneuraOu.Logic
             if (turn == Turn.Sente)
             {
                 // is not top rank
-                if (square >= (int)Square.S5B)
+                if ((bb & Ranks.Five) == 0)
                 {
                     // up
                     attacks |= bb >> Constants.BoardSize;
@@ -73,7 +73,7 @@ namespace GoneuraOu.Logic
                     attacks |= bb << 1;
 
                 // is not bottom rank
-                if (square <= (int)Square.S1D)
+                if ((bb & Ranks.One) == 0)
                 {
                     // bottom
                     attacks |= bb << Constants.BoardSize;
@@ -82,7 +82,7 @@ namespace GoneuraOu.Logic
             else
             {
                 // is not bottom rank
-                if (square <= (int)Square.S1D)
+                if ((bb & Ranks.One) == 0)
                 {
                     // down
                     attacks |= bb << Constants.BoardSize;
@@ -102,7 +102,7 @@ namespace GoneuraOu.Logic
                     attacks |= bb << 1;
 
                 // is not top rank
-                if (square >= (int)Square.S5B)
+                if ((bb & Ranks.Five) == 0)
                 {
                     // top
                     attacks |= bb >> Constants.BoardSize;
@@ -120,7 +120,7 @@ namespace GoneuraOu.Logic
             if (turn == Turn.Sente)
             {
                 // is not top rank
-                if (square >= (int)Square.S5B)
+                if ((bb & Ranks.Five) == 0)
                 {
                     // up
                     attacks |= bb >> Constants.BoardSize;
@@ -133,7 +133,7 @@ namespace GoneuraOu.Logic
                 }
 
                 // is bottom rank
-                if (square >= (int)Square.S5E) return attacks;
+                if ((bb & Ranks.One) != 0) return attacks;
 
                 // add bottom left
                 if ((bb & Files.A) == 0)
@@ -145,7 +145,7 @@ namespace GoneuraOu.Logic
             else
             {
                 // is not bottom rank
-                if (square <= (int)Square.S1D)
+                if ((bb & Ranks.One) == 0)
                 {
                     // bottom
                     attacks |= bb << Constants.BoardSize;
@@ -158,7 +158,7 @@ namespace GoneuraOu.Logic
                 }
 
                 // is top rank
-                if (square <= (int)Square.S1A) return attacks;
+                if ((bb & Ranks.Five) != 0) return attacks;
 
                 // add top left
                 if ((bb & Files.A) == 0)
@@ -177,7 +177,7 @@ namespace GoneuraOu.Logic
             var attacks = GenerateGoldAttacks(square, Turn.Sente);
 
             // is bottom rank
-            if (square >= Constants.BoardArea - Constants.BoardSize) return attacks;
+            if ((bb & Ranks.One) != 0) return attacks;
 
             // add bottom left
             if ((bb & Files.A) == 0)
@@ -185,61 +185,6 @@ namespace GoneuraOu.Logic
             // add bottom right
             if ((bb & Files.E) == 0)
                 attacks |= bb << (Constants.BoardSize + 1);
-
-            return attacks;
-        }
-
-        public static uint GenerateBishopOccupancy(int square)
-        {
-            uint attacks = 0;
-
-            int r, f;
-
-            var tr = square / Constants.BoardSize;
-            var tf = square % Constants.BoardSize;
-
-            const int limit = Constants.BoardSize - 2;
-
-            // top right
-            for (r = tr + 1, f = tf + 1; r <= limit && f <= limit; r++, f++)
-                Utils.ForceSetBit(ref attacks, r * Constants.BoardSize + f);
-            // bottom right
-            for (r = tr - 1, f = tf + 1; r >= 1 && f <= limit; r--, f++)
-                Utils.ForceSetBit(ref attacks, r * Constants.BoardSize + f);
-            // top left
-            for (r = tr + 1, f = tf - 1; r <= limit && f >= 1; r++, f--)
-                Utils.ForceSetBit(ref attacks, r * Constants.BoardSize + f);
-            // bottom left
-            for (r = tr - 1, f = tf - 1; r >= 1 && f >= 1; r--, f--)
-                Utils.ForceSetBit(ref attacks, r * Constants.BoardSize + f);
-
-            return attacks;
-        }
-
-        public static uint GenerateRookOccupancy(int square)
-        {
-            uint attacks = 0;
-
-            int r, f;
-
-            var tr = square / Constants.BoardSize;
-            var tf = square % Constants.BoardSize;
-
-            const int limit = Constants.BoardSize - 2;
-
-            // down
-            for (r = tr + 1; r <= limit; r++)
-                Utils.ForceSetBit(ref attacks, r * Constants.BoardSize + tf);
-            // up
-            for (r = tr - 1; r >= 1; r--)
-                Utils.ForceSetBit(ref attacks, r * Constants.BoardSize + tf);
-            ;
-            // right
-            for (f = tf + 1; f <= limit; f++)
-                Utils.ForceSetBit(ref attacks, tr * Constants.BoardSize + f);
-            // left
-            for (f = tf - 1; f >= 1; f--)
-                Utils.ForceSetBit(ref attacks, tr * Constants.BoardSize + f);
 
             return attacks;
         }
@@ -341,46 +286,6 @@ namespace GoneuraOu.Logic
 
             return attacks;
         }
-
-        /// <summary>
-        /// Set Occupancies
-        /// </summary>
-        public static uint SetOccupancy(int index, int bitsInMask, uint attackMask)
-        {
-            uint occupancyMap = 0;
-
-            for (var count = 0; count < bitsInMask; count++)
-            {
-                // get LSB1 index
-                var square = attackMask.Lsb1();
-
-                // we know attackMask[square] is always 1 (unless bb is empty)
-                Utils.ForcePopBit(ref attackMask, square);
-
-                if ((index & (1 << count)) != 0)
-                    Utils.ForceSetBit(ref occupancyMap, square);
-            }
-
-            return occupancyMap;
-        }
-
-        public static readonly int[] BishopRelevantBits =
-        {
-            3, 2, 2, 2, 3,
-            2, 2, 2, 2, 2,
-            2, 2, 4, 2, 2,
-            2, 2, 2, 2, 2,
-            3, 2, 2, 2, 3
-        };
-
-        public static readonly int[] RookRelevantBits =
-        {
-            6, 5, 5, 5, 6,
-            5, 4, 4, 4, 5,
-            5, 4, 4, 4, 5,
-            5, 4, 4, 4, 5,
-            6, 5, 5, 5, 6
-        };
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static uint GetBishopAttacks(int square, uint occupancy)

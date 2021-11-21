@@ -230,8 +230,8 @@ namespace GoneuraOu.Board
             // Is king in check?
             if (nb.IsAttacked(
                 nb.CurrentTurn == Turn.Sente
-                    ? nb.Bitboards[(int)Piece.SenteKing].Lsb1()
-                    : nb.Bitboards[(int)Piece.GoteKing].Lsb1(),
+                    ? nb.Bitboards[(int)Piece.SenteKing].BitScan()
+                    : nb.Bitboards[(int)Piece.GoteKing].BitScan(),
                 nb.CurrentTurn.InvertInt()))
             {
                 return null;
