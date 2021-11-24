@@ -19,10 +19,11 @@ namespace GoneuraOu.Commands
             {
                 var usi = move.ToUsi();
 
-                var nb = board.MakeMoveCopy(move);
-                if (nb == null) continue;
+                board.MakeMoveUnchecked(move);
 
-                var nodes = nb.PerftInternal(depth - 1);
+                var nodes = board.PerftInternal(depth - 1);
+
+                board.UndoMove(move);
 
                 Console.WriteLine($"{usi}: {nodes}");
                 total += nodes;
@@ -43,8 +44,16 @@ namespace GoneuraOu.Commands
 
             foreach (var move in pseudoLegalMoves)
             {
-                var nb = board.MakeMoveCopy(move);
-                nodes += nb?.PerftInternal(depth - 1) ?? 0;
+                board.MakeMoveUnchecked(move);
+                if (board.IsMyKingAttacked(board.CurrentTurn.Invert()))
+                {
+                }
+                else
+                {
+                    nodes += board.PerftInternal(depth - 1);
+                }
+
+                board.UndoMove(move);
             }
 
             return nodes;

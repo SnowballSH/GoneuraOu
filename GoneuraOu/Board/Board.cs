@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using GoneuraOu.Bitboard;
 using GoneuraOu.Common;
@@ -31,6 +32,8 @@ namespace GoneuraOu.Board
 
         public Turn CurrentTurn;
         public bool[,] PawnFiles = new bool[2, 5];
+
+        public Stack<byte> CaptureHistory = new();
 
         public const string StartingSFen = "rbsgk/4p/5/P4/KGSBR[-] w - 1";
 
@@ -105,7 +108,7 @@ namespace GoneuraOu.Board
 
                 continue;
 
-            parsePocket:
+                parsePocket:
                 if (ch is ']' or '-') break;
                 var pocketPt = ((int)ch).ToPiece(false);
                 if (!Pocket[(int)pocketPt.PieceTurn(), pocketPt.PieceType() * 2])
@@ -237,7 +240,7 @@ namespace GoneuraOu.Board
         /// <summary>
         /// MakeMove, updating self
         /// </summary>
-        public bool MakeMoveUnchecked(uint move)
+        public void MakeMoveUnchecked(uint move)
         {
             var target = move.GetTarget();
             var pt = move.GetPieceType();
@@ -302,14 +305,16 @@ namespace GoneuraOu.Board
                         PawnFiles[1, target % 5] = false;
                     }
 
-                    if (Pocket[(int)CurrentTurn, Constants.CompressBasics[plt] * 2])
-                    {
-                        Pocket[(int)CurrentTurn, Constants.CompressBasics[plt] * 2 + 1] = true;
-                    }
-                    else
+                    if (!Pocket[(int)CurrentTurn, Constants.CompressBasics[plt] * 2])
                     {
                         Pocket[(int)CurrentTurn, Constants.CompressBasics[plt] * 2] = true;
                     }
+                    else
+                    {
+                        Pocket[(int)CurrentTurn, Constants.CompressBasics[plt] * 2 + 1] = true;
+                    }
+                    
+                    CaptureHistory.Push((byte)plt);
                 }
 
                 PieceLoc[source] = null;
@@ -318,16 +323,98 @@ namespace GoneuraOu.Board
 
             Occupancies[2] = Occupancies[0] | Occupancies[1];
 
-            // Is king in check?
-            if (IsMyKingAttacked(CurrentTurn))
-            {
-                CurrentTurn = CurrentTurn.Invert();
-                return false;
-            }
+            CurrentTurn = CurrentTurn.Invert();
+        }
 
+        public void UndoMove(uint move)
+        {
             CurrentTurn = CurrentTurn.Invert();
 
-            return true;
+            var target = move.GetTarget();
+            var pt = move.GetPieceType();
+            var drop = move.GetDrop();
+
+            // handle drop
+            if (drop == 1)
+            {
+                var tt = (uint)CurrentTurn * 10;
+                Utils.ForcePopBit(ref Bitboards[pt + tt], (int)target);
+                Utils.ForcePopBit(ref Occupancies[(int)CurrentTurn], (int)target);
+
+                PieceLoc[target] = null;
+
+                if (pt == (int)Piece.SentePawn)
+                {
+                    if (CurrentTurn == Turn.Sente)
+                    {
+                        PawnFiles[0, target % 5] = false;
+                    }
+                    else
+                    {
+                        PawnFiles[1, target % 5] = false;
+                    }
+                }
+
+                if (!Pocket[(int)CurrentTurn, pt * 2])
+                {
+                    Pocket[(int)CurrentTurn, pt * 2] = true;
+                }
+                else
+                {
+                    Pocket[(int)CurrentTurn, pt * 2 + 1] = true;
+                }
+            }
+            else
+            {
+                // lazy evaluation
+                var source = move.GetSource();
+                var promote = move.GetPromote();
+                var capture = move.GetCapture();
+
+                Utils.ForceSetBit(ref Bitboards[pt], (int)source);
+                Utils.ForceSetBit(ref Occupancies[(int)CurrentTurn], (int)source);
+
+                var ppt = promote == 1 ? Constants.PromotesTo[pt] : (int)pt;
+                Utils.ForcePopBit(ref Bitboards[ppt], (int)target);
+                Utils.ForcePopBit(ref Occupancies[(int)CurrentTurn], (int)target);
+
+                // handle capture
+                if (capture == 1)
+                {
+                    var plt = (uint)CaptureHistory.Pop();
+
+                    Utils.ForceSetBit(ref Bitboards[plt], (int)target);
+                    Utils.ForceSetBit(ref Occupancies[CurrentTurn.InvertInt()], (int)target);
+
+                    if (plt == (int)Piece.SentePawn)
+                    {
+                        PawnFiles[0, target % 5] = true;
+                    }
+                    else if (plt == (int)Piece.GotePawn)
+                    {
+                        PawnFiles[1, target % 5] = true;
+                    }
+
+                    if (Pocket[(int)CurrentTurn, Constants.CompressBasics[plt] * 2])
+                    {
+                        Pocket[(int)CurrentTurn, Constants.CompressBasics[plt] * 2] = false;
+                    }
+                    else
+                    {
+                        Pocket[(int)CurrentTurn, Constants.CompressBasics[plt] * 2 + 1] = false;
+                    }
+
+                    PieceLoc[target] = plt;
+                }
+                else
+                {
+                    PieceLoc[target] = null;
+                }
+
+                PieceLoc[source] = pt;
+            }
+
+            Occupancies[2] = Occupancies[0] | Occupancies[1];
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
