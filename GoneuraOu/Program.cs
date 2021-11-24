@@ -13,4 +13,10 @@ Board board = new();
 // board = board.MakeMove(MoveEncode.EncodeMove((int)Square.S2E, (int)Square.S3D, (int)Piece.SenteBishop, 0, 0, 0))!;
 board.PrintBoard();
 
-board.PerftRootPrint(5);
+board.PerftRootPrint(6);
+
+// var block = 0u.SetBitAt((int)Square.S2E).SetBitAt((int)Square.S1E).SetBitAt((int)Square.S4A);
+//
+// ((uint)Kindergarten.GetRankAttacks((int)Square.S5E,
+//         block))
+//     .BitboardPrint();

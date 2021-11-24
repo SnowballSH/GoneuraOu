@@ -238,53 +238,10 @@ namespace GoneuraOu.Logic
             return attacks;
         }
 
-        /// <summary>
-        /// Generate rook moves, but counting blockers
-        /// </summary>
-        public static uint GenerateRookAttacksOnTheFly(int square, uint block)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static uint GenerateRookAttacksOnTheFly(int square, uint block)
         {
-            uint attacks = 0;
-
-            int r, f;
-
-            var tr = square / Constants.BoardSize;
-            var tf = square % Constants.BoardSize;
-
-            const int limit = Constants.BoardSize - 1;
-
-            // down
-            for (r = tr + 1; r <= limit; r++)
-            {
-                var k = (uint)(1 << (r * Constants.BoardSize + tf));
-                attacks |= k;
-                if ((k & block) != 0) break;
-            }
-
-            // up
-            for (r = tr - 1; r >= 0; r--)
-            {
-                var k = (uint)(1 << (r * Constants.BoardSize + tf));
-                attacks |= k;
-                if ((k & block) != 0) break;
-            }
-
-            // right
-            for (f = tf + 1; f <= limit; f++)
-            {
-                var k = (uint)(1 << (tr * Constants.BoardSize + f));
-                attacks |= k;
-                if ((k & block) != 0) break;
-            }
-
-            // left
-            for (f = tf - 1; f >= 0; f--)
-            {
-                var k = (uint)(1 << (tr * Constants.BoardSize + f));
-                attacks |= k;
-                if ((k & block) != 0) break;
-            }
-
-            return attacks;
+            return Kindergarten.GetFileAttacks(square, block) | Kindergarten.GetRankAttacks(square, block);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

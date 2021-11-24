@@ -18,9 +18,12 @@ namespace GoneuraOu.Commands
             foreach (var move in legalMoves)
             {
                 var usi = move.ToUsi();
-                var nb = board.MakeMove(move);
+
+                var nb = board.MakeMoveCopy(move);
                 if (nb == null) continue;
+
                 var nodes = nb.PerftInternal(depth - 1);
+
                 Console.WriteLine($"{usi}: {nodes}");
                 total += nodes;
             }
@@ -40,7 +43,7 @@ namespace GoneuraOu.Commands
 
             foreach (var move in pseudoLegalMoves)
             {
-                var nb = board.MakeMove(move);
+                var nb = board.MakeMoveCopy(move);
                 nodes += nb?.PerftInternal(depth - 1) ?? 0;
             }
 

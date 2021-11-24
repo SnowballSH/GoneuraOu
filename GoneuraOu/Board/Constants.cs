@@ -24,6 +24,15 @@
             "5e", "4e", "3e", "2e", "1e",
         };
 
+        public static readonly string[] SquareCoordsUci =
+        {
+            "a5", "b5", "c5", "d5", "e5",
+            "a4", "b4", "c4", "d4", "e4",
+            "a3", "b3", "c3", "d3", "e3",
+            "a2", "b2", "c2", "d2", "e2",
+            "a1", "b1", "c1", "d1", "e1",
+        };
+
         public static readonly int[] PromotesTo =
         {
             (int)Piece.SenteTokin, 0, (int)Piece.SentePromotedSilver, (int)Piece.SenteDragon, (int)Piece.SenteHorse,

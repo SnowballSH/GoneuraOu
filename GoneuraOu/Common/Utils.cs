@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using GoneuraOu.Bitboard;
 using GoneuraOu.Board;
@@ -44,14 +45,19 @@ namespace GoneuraOu.Common
             }
         }
 
-        public static void Display<T>(this T[] matrix)
+        public static void Display<T>(this IEnumerable<T> matrix)
         {
             Console.Write("[");
-            for (var i = 0; i < matrix.Length; i++)
+            foreach (var t in matrix)
             {
-                Console.Write(matrix[i] + ", ");
+                Console.Write(t + ", ");
             }
             Console.WriteLine("]");
+        }
+
+        public static void PrintBits(this byte b)
+        {
+            Console.WriteLine(Convert.ToString(b, 2).PadLeft(8, '0'));
         }
     }
 }
