@@ -53,6 +53,7 @@ namespace GoneuraOu.Board
             Array.Clear(Occupancies);
             Array.Clear(Pocket);
             Array.Clear(PawnFiles);
+            CaptureHistory.Clear();
 
             var promoteNext = false;
             var rank = 0;
@@ -108,7 +109,7 @@ namespace GoneuraOu.Board
 
                 continue;
 
-                parsePocket:
+            parsePocket:
                 if (ch is ']' or '-') break;
                 var pocketPt = ((int)ch).ToPiece(false);
                 if (!Pocket[(int)pocketPt.PieceTurn(), pocketPt.PieceType() * 2])
@@ -125,116 +126,6 @@ namespace GoneuraOu.Board
             {
                 CurrentTurn = parts[1] == "w" ? Turn.Sente : Turn.Gote;
             }
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Board ShallowCopy()
-        {
-            var copy = (Board)MemberwiseClone();
-            copy.Bitboards = (uint[])Bitboards.Clone();
-            copy.Occupancies = (uint[])Occupancies.Clone();
-            copy.Pocket = (bool[,])Pocket.Clone();
-            copy.PieceLoc = (uint?[])PieceLoc.Clone();
-            copy.PawnFiles = (bool[,])PawnFiles.Clone();
-            return copy;
-        }
-
-        /// <summary>
-        /// Performs the move on a new board
-        /// </summary>
-        /// <returns>new board?</returns>
-        public Board? MakeMoveCopy(uint move)
-        {
-            var nb = ShallowCopy();
-
-            var target = move.GetTarget();
-            var pt = move.GetPieceType();
-            var drop = move.GetDrop();
-
-            // handle drop
-            if (drop == 1)
-            {
-                var tt = (uint)nb.CurrentTurn * 10;
-                Utils.ForceSetBit(ref nb.Bitboards[pt + tt], (int)target);
-                Utils.ForceSetBit(ref nb.Occupancies[(int)nb.CurrentTurn], (int)target);
-                nb.PieceLoc[target] = pt + tt;
-                if (pt == (int)Piece.SentePawn)
-                {
-                    if (nb.CurrentTurn == Turn.Sente)
-                    {
-                        nb.PawnFiles[0, target % 5] = true;
-                    }
-                    else
-                    {
-                        nb.PawnFiles[1, target % 5] = true;
-                    }
-                }
-
-                if (nb.Pocket[(int)nb.CurrentTurn, pt * 2])
-                {
-                    nb.Pocket[(int)nb.CurrentTurn, pt * 2] = false;
-                }
-                else
-                {
-                    nb.Pocket[(int)nb.CurrentTurn, pt * 2 + 1] = false;
-                }
-            }
-            else
-            {
-                // lazy evaluation
-                var source = move.GetSource();
-                var promote = move.GetPromote();
-                var capture = move.GetCapture();
-
-                Utils.ForcePopBit(ref nb.Bitboards[pt], (int)source);
-                Utils.ForcePopBit(ref nb.Occupancies[(int)nb.CurrentTurn], (int)source);
-
-                var ppt = promote == 1 ? Constants.PromotesTo[pt] : (int)pt;
-                Utils.ForceSetBit(ref nb.Bitboards[ppt], (int)target);
-                Utils.ForceSetBit(ref nb.Occupancies[(int)nb.CurrentTurn], (int)target);
-
-                // handle capture
-                if (capture == 1)
-                {
-                    var plt = nb.PieceLoc[target].GetValueOrDefault(0);
-
-                    Utils.ForcePopBit(ref nb.Bitboards[plt], (int)target);
-                    Utils.ForcePopBit(ref nb.Occupancies[nb.CurrentTurn.InvertInt()], (int)target);
-
-                    if (plt == (int)Piece.SentePawn)
-                    {
-                        nb.PawnFiles[0, target % 5] = false;
-                    }
-                    else if (plt == (int)Piece.GotePawn)
-                    {
-                        nb.PawnFiles[1, target % 5] = false;
-                    }
-
-                    if (nb.Pocket[(int)nb.CurrentTurn, Constants.CompressBasics[plt] * 2])
-                    {
-                        nb.Pocket[(int)nb.CurrentTurn, Constants.CompressBasics[plt] * 2 + 1] = true;
-                    }
-                    else
-                    {
-                        nb.Pocket[(int)nb.CurrentTurn, Constants.CompressBasics[plt] * 2] = true;
-                    }
-                }
-
-                nb.PieceLoc[source] = null;
-                nb.PieceLoc[target] = (uint)ppt;
-            }
-
-            nb.Occupancies[2] = nb.Occupancies[0] | nb.Occupancies[1];
-
-            // Is king in check?
-            if (nb.IsMyKingAttacked(nb.CurrentTurn))
-            {
-                return null;
-            }
-
-            nb.CurrentTurn = nb.CurrentTurn.Invert();
-
-            return nb;
         }
 
         /// <summary>
@@ -313,7 +204,7 @@ namespace GoneuraOu.Board
                     {
                         Pocket[(int)CurrentTurn, Constants.CompressBasics[plt] * 2 + 1] = true;
                     }
-                    
+
                     CaptureHistory.Push((byte)plt);
                 }
 

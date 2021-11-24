@@ -1,4 +1,5 @@
-﻿using GoneuraOu.Bitboard;
+﻿using System;
+using GoneuraOu.Bitboard;
 using GoneuraOu.Board;
 using GoneuraOu.Logic;
 
@@ -22,7 +23,7 @@ namespace GoneuraOu.Common
             if (str[1] == '*')
             {
                 // drop
-                var piece = ((int)str[0]).ToPiece(false) + (int)board.CurrentTurn * 10;
+                var piece = ((int)str[0]).ToPiece(false);
                 var targetFile = 5 - (str[2] - '0');
                 var targetRank = str[3] - 'a';
                 var targetSq = targetRank * Constants.BoardSize + targetFile;
@@ -64,7 +65,7 @@ namespace GoneuraOu.Common
             if (str[1] == '@')
             {
                 // drop
-                var piece = ((int)str[0]).ToPiece(false) + (int)board.CurrentTurn * 10;
+                var piece = ((int)str[0]).ToPiece(false);
                 var targetFile = str[2] - 'a';
                 var targetRank = 5 - (str[3] - '0');
                 var targetSq = targetRank * Constants.BoardSize + targetFile;
