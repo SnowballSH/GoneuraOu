@@ -2,15 +2,25 @@
 
 namespace GoneuraOu.Commands
 {
+    public struct SearchLimit
+    {
+        public uint? FixedDepth;
+
+        public SearchLimit(uint? fixedDepth)
+        {
+            FixedDepth = fixedDepth;
+        }
+    }
+
     public class Protocol
     {
         public Board.Board CurrentPosition;
-        public uint? FixedDepth;
+        public SearchLimit Limit;
 
         public Protocol()
         {
             CurrentPosition = new Board.Board();
-            FixedDepth = null;
+            Limit = new SearchLimit();
         }
 
         public void StartProtocol()

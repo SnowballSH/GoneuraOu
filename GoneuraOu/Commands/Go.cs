@@ -11,21 +11,27 @@ namespace GoneuraOu.Commands
         {
             Debug.Assert(tokens[0] == "go");
 
+            proto.Limit = new SearchLimit();
+
             var index = 1;
             while (index < tokens.Length)
             {
                 switch (tokens[index++])
                 {
                     case "depth":
-                        proto.FixedDepth = uint.Parse(tokens[index++]);
+                        proto.Limit.FixedDepth = uint.Parse(tokens[index++]);
                         break;
+
+                    case "perft":
+                        Perft.PerftRootPrint(proto.CurrentPosition, uint.Parse(tokens[index++]));
+                        return;
 
                     default:
                         goto after;
                 }
             }
 
-        after:
+            after:
 
             uint first = 0;
             var moves = proto.CurrentPosition.GeneratePseudoLegalMoves();
@@ -42,6 +48,7 @@ namespace GoneuraOu.Commands
                     {
                         first = m;
                     }
+
                     proto.CurrentPosition.UndoMove(m);
                     if (Random.Shared.NextSingle() < 0.7) continue;
 
