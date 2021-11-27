@@ -14,6 +14,4 @@ void ProtocolMain()
     proto.StartProtocol();
 }
 
-Board board = new();
-board.PrintBoard();
-Console.WriteLine(board.Evaluate());
+ProtocolMain();

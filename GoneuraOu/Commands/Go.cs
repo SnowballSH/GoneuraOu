@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using GoneuraOu.Common;
+using GoneuraOu.Evaluation;
 using GoneuraOu.Logic;
 
 namespace GoneuraOu.Commands
@@ -33,8 +34,9 @@ namespace GoneuraOu.Commands
 
             after:
 
-            uint first = 0;
             var moves = proto.CurrentPosition.GeneratePseudoLegalMoves();
+            var bestMove = 0u;
+            var bestScore = -10000000;
             foreach (var m in moves)
             {
                 proto.CurrentPosition.MakeMoveUnchecked(m);
@@ -44,20 +46,17 @@ namespace GoneuraOu.Commands
                 }
                 else
                 {
-                    if (first == 0)
+                    var eval = proto.CurrentPosition.Evaluate();
+                    if (eval > bestScore)
                     {
-                        first = m;
+                        bestScore = eval;
+                        bestMove = m;
                     }
-
                     proto.CurrentPosition.UndoMove(m);
-                    if (Random.Shared.NextSingle() < 0.7) continue;
-
-                    Console.WriteLine($"bestmove {m.ToUci()}");
-                    return;
                 }
             }
 
-            Console.WriteLine($"bestmove {first.ToUci()}");
+            Console.WriteLine($"bestmove {bestMove.ToUci()}");
         }
     }
 }
