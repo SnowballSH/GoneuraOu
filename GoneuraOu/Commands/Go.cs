@@ -46,7 +46,7 @@ namespace GoneuraOu.Commands
                 }
                 else
                 {
-                    var eval = proto.CurrentPosition.Evaluate();
+                    var eval = -proto.CurrentPosition.Evaluate();
                     if (eval > bestScore)
                     {
                         bestScore = eval;
