@@ -69,12 +69,12 @@ namespace GoneuraOu.Commands
                         break;
 
                     case "go":
-                        Go.DoGo(this, tokens);
+                        this.DoGo(tokens);
                         GC.Collect();
                         break;
 
                     case "position":
-                        Position.DoPosition(this, tokens);
+                        this.DoPosition(tokens);
                         break;
 
                     case "setoption":

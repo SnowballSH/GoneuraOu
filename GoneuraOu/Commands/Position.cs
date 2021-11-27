@@ -7,7 +7,7 @@ namespace GoneuraOu.Commands
 {
     public static class Position
     {
-        public static void DoPosition(Protocol proto, string[] tokens)
+        public static void DoPosition(this Protocol proto, string[] tokens)
         {
             Debug.Assert(tokens[0] == "position");
             var index = 1;

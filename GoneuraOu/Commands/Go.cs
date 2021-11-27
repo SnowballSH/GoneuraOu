@@ -7,7 +7,7 @@ namespace GoneuraOu.Commands
 {
     public static class Go
     {
-        public static void DoGo(Protocol proto, string[] tokens)
+        public static void DoGo(this Protocol proto, string[] tokens)
         {
             Debug.Assert(tokens[0] == "go");
 
