@@ -14,13 +14,12 @@ namespace GoneuraOu.Search
         {
             if (depth == 0)
             {
-                return ClassicalEvaluation.Evaluate(board);
+                return Quiescence(board, alpha, beta);
             }
 
             Nodes++;
 
             var bestMove = 0u;
-            var originalAlpha = 0u;
 
             var moves = board.GeneratePseudoLegalMoves();
             var legals = 0;
@@ -76,6 +75,58 @@ namespace GoneuraOu.Search
                 {
                     // stalemate: loses
                     return -987654 + Ply;
+                }
+            }
+
+            return alpha;
+        }
+        
+        public int Quiescence(Board.Board board, int alpha, int beta)
+        {
+            var evaluation = ClassicalEvaluation.Evaluate(board);
+
+            if (evaluation >= beta)
+            {
+                return beta;
+            }
+
+            if (evaluation > alpha)
+            {
+                alpha = evaluation;
+            }
+
+            var moves = board.GeneratePseudoLegalMoves();
+            foreach (var move in moves)
+            {
+                if (move.GetCapture() == 0 && move.GetPromote() == 0)
+                {
+                    continue;
+                }
+                board.MakeMoveUnchecked(move);
+                if (board.IsMyKingAttacked(board.CurrentTurn.Invert()))
+                {
+                    board.UndoMove(move);
+                    continue;
+                }
+
+                Ply++;
+
+                var score = -Quiescence(board, -beta, -alpha);
+
+                board.UndoMove(move);
+                Ply--;
+
+                // fail-hard beta cutoff
+                if (score >= beta)
+                {
+                    // fails high
+                    return beta;
+                }
+
+                // better move
+                if (score > alpha)
+                {
+                    alpha = score;
                 }
             }
 
