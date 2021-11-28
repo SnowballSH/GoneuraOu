@@ -3,6 +3,7 @@ using System.Diagnostics;
 using GoneuraOu.Common;
 using GoneuraOu.Evaluation;
 using GoneuraOu.Logic;
+using GoneuraOu.Search;
 
 namespace GoneuraOu.Commands
 {
@@ -26,37 +27,20 @@ namespace GoneuraOu.Commands
                     case "perft":
                         Perft.PerftRootPrint(proto.CurrentPosition, uint.Parse(tokens[index++]));
                         return;
-
-                    default:
-                        goto after;
                 }
             }
 
-            after:
+            var searcher = new Searcher();
 
-            var moves = proto.CurrentPosition.GeneratePseudoLegalMoves();
-            var bestMove = 0u;
-            var bestScore = -10000000;
-            foreach (var m in moves)
+            var depth = proto.Limit.FixedDepth ?? 5;
+
+            var score = searcher.Negamax(proto.CurrentPosition, -7654321, 7654321, depth);
+
+            if (searcher.FinalBestMove != 0)
             {
-                proto.CurrentPosition.MakeMoveUnchecked(m);
-                if (proto.CurrentPosition.IsMyKingAttacked(proto.CurrentPosition.CurrentTurn.Invert()))
-                {
-                    proto.CurrentPosition.UndoMove(m);
-                }
-                else
-                {
-                    var eval = -proto.CurrentPosition.Evaluate();
-                    if (eval > bestScore)
-                    {
-                        bestScore = eval;
-                        bestMove = m;
-                    }
-                    proto.CurrentPosition.UndoMove(m);
-                }
+                Console.WriteLine($"info depth {depth} score cp {score} nodes {searcher.Nodes}");
+                Console.WriteLine($"bestmove {searcher.FinalBestMove.ToUci()}");
             }
-
-            Console.WriteLine($"bestmove {bestMove.ToUci()}");
         }
     }
 }

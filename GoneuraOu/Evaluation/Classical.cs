@@ -112,7 +112,7 @@ namespace GoneuraOu.Evaluation
 
             for (var turn = 0; turn <= 1; turn++)
             {
-                for (var pi = 0; pi <= 5; pi++)
+                for (var pi = 0; pi < 5; pi++)
                 {
                     if (position.Pocket[turn, pi])
                     {
