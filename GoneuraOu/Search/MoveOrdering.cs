@@ -1,7 +1,23 @@
-﻿namespace GoneuraOu.Search
+﻿using GoneuraOu.Logic;
+
+namespace GoneuraOu.Search
 {
     public static class MoveOrdering
     {
+        public static int ScoreMove(this Board.Board pos, uint move)
+        {
+            if (move.GetCapture() == 1)
+            {
+                var sp = move.GetPieceType();
+                var tp = pos.PieceLoc[move.GetTarget()]!;
+                return MvvLvaTable[(int)sp, (int)tp];
+            }
+            else
+            {
+                return 0;
+            }
+        }
+
         //     P   G   S   R   B   K   +P  +S  +R  +B
         // P   107 307 207 507 407 907 307 307 707 607
         // G   105 305 205 505 405 905 305 305 705 605

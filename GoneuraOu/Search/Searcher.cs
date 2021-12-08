@@ -1,4 +1,5 @@
-﻿using GoneuraOu.Common;
+﻿using System.Linq;
+using GoneuraOu.Common;
 using GoneuraOu.Evaluation;
 using GoneuraOu.Logic;
 
@@ -19,9 +20,15 @@ namespace GoneuraOu.Search
 
             Nodes++;
 
+            if (board.IsMyKingAttacked(board.CurrentTurn.Invert()))
+            {
+                depth++;
+            }
+
             var bestMove = 0u;
 
             var moves = board.GeneratePseudoLegalMoves();
+            // moves.Sort((x, y) => board.ScoreMove(x).CompareTo(board.ScoreMove(y)));
             var legals = 0;
             foreach (var move in moves)
             {
@@ -95,8 +102,11 @@ namespace GoneuraOu.Search
                 alpha = evaluation;
             }
 
-            var moves = board.GenerateCaptureMoves();
-            foreach (var move in moves)
+            var captures = board.GenerateCaptureMoves().ToList();
+            
+            captures.Sort((x, y) => board.ScoreMove(x).CompareTo(board.ScoreMove(y)));
+
+            foreach (var move in captures)
             {
                 board.MakeMoveUnchecked(move);
                 if (board.IsMyKingAttacked(board.CurrentTurn.Invert()))
