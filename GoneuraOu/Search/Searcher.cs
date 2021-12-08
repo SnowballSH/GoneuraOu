@@ -80,7 +80,7 @@ namespace GoneuraOu.Search
 
             return alpha;
         }
-        
+
         public int Quiescence(Board.Board board, int alpha, int beta)
         {
             var evaluation = ClassicalEvaluation.Evaluate(board);
@@ -95,13 +95,9 @@ namespace GoneuraOu.Search
                 alpha = evaluation;
             }
 
-            var moves = board.GeneratePseudoLegalMoves();
+            var moves = board.GenerateCaptureMoves();
             foreach (var move in moves)
             {
-                if (move.GetCapture() == 0 && move.GetPromote() == 0)
-                {
-                    continue;
-                }
                 board.MakeMoveUnchecked(move);
                 if (board.IsMyKingAttacked(board.CurrentTurn.Invert()))
                 {

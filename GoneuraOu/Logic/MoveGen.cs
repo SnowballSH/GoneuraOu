@@ -319,5 +319,312 @@ namespace GoneuraOu.Logic
                 }
             }
         }
+
+        public static IEnumerable<uint> GenerateCaptureMoves(this Board.Board board)
+        {
+            // PAWN MOVES
+            {
+                var bits = board.Bitboards[(int)(board.CurrentTurn == Turn.Sente ? Piece.SentePawn : Piece.GotePawn)];
+                while (bits != 0)
+                {
+                    var source = bits.BitScan();
+                    var attacks = Attacks.PawnAttacks[(int)board.CurrentTurn, source] &
+                                  ~board.Occupancies[(int)board.CurrentTurn];
+                    while (attacks != 0)
+                    {
+                        var target = attacks.BitScan();
+
+                        if (Convert.ToInt32(board.Occupancies[(int)board.CurrentTurn ^ 1].GetBitAt(target)) == 1)
+                        {
+                            var promote = board.CurrentTurn == Turn.Sente
+                                ? target <= (int)Square.S1A
+                                : target >= (int)Square.S5E;
+
+                            if (promote)
+                            {
+                                // MUST PROMOTE!!
+                                yield return MoveEncode.EncodeMove(source, target,
+                                    (int)(board.CurrentTurn == Turn.Sente ? Piece.SentePawn : Piece.GotePawn),
+                                    1, 0,
+                                    1);
+                            }
+                            else
+                            {
+                                yield return MoveEncode.EncodeMove(source, target,
+                                    (int)(board.CurrentTurn == Turn.Sente ? Piece.SentePawn : Piece.GotePawn),
+                                    0, 0,
+                                    1);
+                            }
+                        }
+
+                        Utils.ForcePopBit(ref attacks, target);
+                    }
+
+                    Utils.ForcePopBit(ref bits, source);
+                }
+            }
+
+            // GOLD MOVES
+            {
+                var bits = board.Bitboards[(int)(board.CurrentTurn == Turn.Sente ? Piece.SenteGold : Piece.GoteGold)];
+                while (bits != 0)
+                {
+                    var source = bits.BitScan();
+                    var attacks = Attacks.GoldAttacks[(int)board.CurrentTurn, source] &
+                                  ~board.Occupancies[(int)board.CurrentTurn];
+                    while (attacks != 0)
+                    {
+                        var target = attacks.BitScan();
+                        if (Convert.ToInt32(board.Occupancies[(int)board.CurrentTurn ^ 1].GetBitAt(target)) == 1)
+                        {
+                            yield return MoveEncode.EncodeMove(source, target,
+                                (int)(board.CurrentTurn == Turn.Sente ? Piece.SenteGold : Piece.GoteGold),
+                                0, 0,
+                                1);
+                        }
+
+                        Utils.ForcePopBit(ref attacks, target);
+                    }
+
+                    Utils.ForcePopBit(ref bits, source);
+                }
+            }
+
+            // PROMOTED GOLD-like MOVES
+            {
+                var bits = board.Bitboards[
+                               (int)(board.CurrentTurn == Turn.Sente ? Piece.SenteTokin : Piece.GoteTokin)]
+                           | board.Bitboards[
+                               (int)(board.CurrentTurn == Turn.Sente
+                                   ? Piece.SentePromotedSilver
+                                   : Piece.GotePromotedSilver)];
+                while (bits != 0)
+                {
+                    var source = bits.BitScan();
+                    var attacks = Attacks.GoldAttacks[(int)board.CurrentTurn, source] &
+                                  ~board.Occupancies[(int)board.CurrentTurn];
+                    var pt = board
+                        .Bitboards[(int)(board.CurrentTurn == Turn.Sente ? Piece.SenteTokin : Piece.GoteTokin)]
+                        .GetBitAt(source)
+                        ? board.CurrentTurn == Turn.Sente ? Piece.SenteTokin : Piece.GoteTokin
+                        : board.CurrentTurn == Turn.Sente
+                            ? Piece.SentePromotedSilver
+                            : Piece.GotePromotedSilver;
+                    while (attacks != 0)
+                    {
+                        var target = attacks.BitScan();
+                        if (Convert.ToInt32(board.Occupancies[(int)board.CurrentTurn ^ 1].GetBitAt(target)) == 1)
+                        {
+                            yield return MoveEncode.EncodeMove(source, target,
+                                (int)pt,
+                                0, 0,
+                                1);
+                        }
+
+                        Utils.ForcePopBit(ref attacks, target);
+                    }
+
+                    Utils.ForcePopBit(ref bits, source);
+                }
+            }
+
+            // SILVER MOVES
+            {
+                var bits = board.Bitboards[
+                    (int)(board.CurrentTurn == Turn.Sente ? Piece.SenteSilver : Piece.GoteSilver)];
+                while (bits != 0)
+                {
+                    var source = bits.BitScan();
+                    var attacks = Attacks.SilverAttacks[(int)board.CurrentTurn, source] &
+                                  ~board.Occupancies[(int)board.CurrentTurn];
+                    while (attacks != 0)
+                    {
+                        var target = attacks.BitScan();
+
+                        if (Convert.ToInt32(board.Occupancies[(int)board.CurrentTurn ^ 1].GetBitAt(target)) == 1)
+                        {
+
+                            var promote = board.CurrentTurn == Turn.Sente
+                                ? target <= (int)Square.S1A || source <= (int)Square.S1A
+                                : target >= (int)Square.S5E || source >= (int)Square.S5E;
+
+                            yield return MoveEncode.EncodeMove(source, target,
+                                (int)(board.CurrentTurn == Turn.Sente ? Piece.SenteSilver : Piece.GoteSilver),
+                                0, 0,
+                                1);
+
+                            if (promote)
+                            {
+                                yield return MoveEncode.EncodeMove(source, target,
+                                    (int)(board.CurrentTurn == Turn.Sente ? Piece.SenteSilver : Piece.GoteSilver),
+                                    Convert.ToInt32(promote), 0,
+                                    1);
+                            }
+                        }
+
+                        Utils.ForcePopBit(ref attacks, target);
+                    }
+
+                    Utils.ForcePopBit(ref bits, source);
+                }
+            }
+
+            // KING MOVES
+            {
+                var bits = board.Bitboards[(int)(board.CurrentTurn == Turn.Sente ? Piece.SenteKing : Piece.GoteKing)];
+                while (bits != 0)
+                {
+                    var source = bits.BitScan();
+                    var attacks = Attacks.KingAttacks[source] & ~board.Occupancies[(int)board.CurrentTurn];
+                    while (attacks != 0)
+                    {
+                        var target = attacks.BitScan();
+                        if (Convert.ToInt32(board.Occupancies[(int)board.CurrentTurn ^ 1].GetBitAt(target)) == 1)
+                        {
+                            yield return MoveEncode.EncodeMove(source, target,
+                                (int)(board.CurrentTurn == Turn.Sente ? Piece.SenteKing : Piece.GoteKing),
+                                0, 0,
+                                1);
+                        }
+
+                        Utils.ForcePopBit(ref attacks, target);
+                    }
+
+                    Utils.ForcePopBit(ref bits, source);
+                }
+            }
+
+            // ROOK MOVES
+            {
+                var bits = board.Bitboards[
+                    (int)(board.CurrentTurn == Turn.Sente ? Piece.SenteRook : Piece.GoteRook)];
+                while (bits != 0)
+                {
+                    var source = bits.BitScan();
+                    var attacks = Attacks.GetRookAttacks(source, board.Occupancies[2]) &
+                                  ~board.Occupancies[(int)board.CurrentTurn];
+                    while (attacks != 0)
+                    {
+                        var target = attacks.BitScan();
+                        if (Convert.ToInt32(board.Occupancies[(int)board.CurrentTurn ^ 1].GetBitAt(target)) == 1)
+                        {
+                            var promote = board.CurrentTurn == Turn.Sente
+                                ? target <= (int)Square.S1A || source <= (int)Square.S1A
+                                : target >= (int)Square.S5E || source >= (int)Square.S5E;
+
+                            yield return MoveEncode.EncodeMove(source, target,
+                                (int)(board.CurrentTurn == Turn.Sente ? Piece.SenteRook : Piece.GoteRook),
+                                0, 0,
+                                1);
+
+                            if (promote)
+                            {
+                                yield return MoveEncode.EncodeMove(source, target,
+                                    (int)(board.CurrentTurn == Turn.Sente ? Piece.SenteRook : Piece.GoteRook),
+                                    1, 0,
+                                    1);
+                            }
+                        }
+
+                        Utils.ForcePopBit(ref attacks, target);
+                    }
+
+                    Utils.ForcePopBit(ref bits, source);
+                }
+            }
+
+            // BISHOP MOVES
+            {
+                var bits = board.Bitboards[
+                    (int)(board.CurrentTurn == Turn.Sente ? Piece.SenteBishop : Piece.GoteBishop)];
+                while (bits != 0)
+                {
+                    var source = bits.BitScan();
+                    var attacks = Attacks.GetBishopAttacks(source, board.Occupancies[2]) &
+                                  ~board.Occupancies[(int)board.CurrentTurn];
+                    while (attacks != 0)
+                    {
+                        var target = attacks.BitScan();
+                        if (Convert.ToInt32(board.Occupancies[(int)board.CurrentTurn ^ 1].GetBitAt(target)) == 1)
+                        {
+                            var promote = board.CurrentTurn == Turn.Sente
+                                ? target <= (int)Square.S1A || source <= (int)Square.S1A
+                                : target >= (int)Square.S5E || source >= (int)Square.S5E;
+
+                            yield return MoveEncode.EncodeMove(source, target,
+                                (int)(board.CurrentTurn == Turn.Sente ? Piece.SenteBishop : Piece.GoteBishop),
+                                0, 0,
+                                1);
+
+                            if (promote)
+                            {
+                                yield return MoveEncode.EncodeMove(source, target,
+                                    (int)(board.CurrentTurn == Turn.Sente ? Piece.SenteBishop : Piece.GoteBishop),
+                                    1, 0,
+                                    1);
+                            }
+                        }
+
+                        Utils.ForcePopBit(ref attacks, target);
+                    }
+
+                    Utils.ForcePopBit(ref bits, source);
+                }
+            }
+
+            // DRAGON MOVES
+            {
+                var bits = board.Bitboards[
+                    (int)(board.CurrentTurn == Turn.Sente ? Piece.SenteDragon : Piece.GoteDragon)];
+                while (bits != 0)
+                {
+                    var source = bits.BitScan();
+                    var attacks = Attacks.GetDragonAttacks(source, board.Occupancies[2]) &
+                                  ~board.Occupancies[(int)board.CurrentTurn];
+                    while (attacks != 0)
+                    {
+                        var target = attacks.BitScan();
+                        if (Convert.ToInt32(board.Occupancies[(int)board.CurrentTurn ^ 1].GetBitAt(target)) == 1)
+                        {
+                            yield return MoveEncode.EncodeMove(source, target,
+                                (int)(board.CurrentTurn == Turn.Sente ? Piece.SenteDragon : Piece.GoteDragon),
+                                0, 0,
+                                1);
+                        }
+
+                        Utils.ForcePopBit(ref attacks, target);
+                    }
+
+                    Utils.ForcePopBit(ref bits, source);
+                }
+            }
+
+            // HORSE MOVES
+            {
+                var bits = board.Bitboards[
+                    (int)(board.CurrentTurn == Turn.Sente ? Piece.SenteHorse : Piece.GoteHorse)];
+                while (bits != 0)
+                {
+                    var source = bits.BitScan();
+                    var attacks = Attacks.GetHorseAttacks(source, board.Occupancies[2]) &
+                                  ~board.Occupancies[(int)board.CurrentTurn];
+                    while (attacks != 0)
+                    {
+                        var target = attacks.BitScan();
+                        if (Convert.ToInt32(board.Occupancies[(int)board.CurrentTurn ^ 1].GetBitAt(target)) == 1)
+                        {
+                            yield return MoveEncode.EncodeMove(source, target,
+                                (int)(board.CurrentTurn == Turn.Sente ? Piece.SenteHorse : Piece.GoteHorse),
+                                0, 0,
+                                1);
+                        }
+
+                        Utils.ForcePopBit(ref attacks, target);
+                    }
+
+                    Utils.ForcePopBit(ref bits, source);
+                }
+            }
+        }
     }
 }

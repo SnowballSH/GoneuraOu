@@ -1,25 +1,27 @@
 ﻿using System.Linq;
+using GoneuraOu.Bitboard;
 using GoneuraOu.Board;
+using GoneuraOu.Logic;
 
 namespace GoneuraOu.Evaluation
 {
     public static class ClassicalEvaluation
     {
-        private static readonly int[] PieceValueSole =
+        public static readonly int[] PieceValueSole =
         {
             100, // Pawn 
-            350, // Gold
+            353, // Gold
             300, // Silver
-            440, // Rook
-            410, // Bishop
+            470, // Rook
+            426, // Bishop
             10000, // King
             340, // Tokin
-            335, // Promoted Silver
+            325, // Promoted Silver
             760, // Dragon
             720 // Horse
         };
 
-        private static readonly int[] PocketValueSole =
+        public static readonly int[] PocketValueSole =
         {
             120, // Pawn 
             400, // Gold
@@ -42,11 +44,11 @@ namespace GoneuraOu.Evaluation
 
         private static readonly int[] KingPsqT =
         {
-            -7, 0, 2, 0, -7,
-            0, 6, 0, 6, 0,
+            -4, 0, 2, 0, -4,
+            0, 1, 0, 1, 0,
             2, 0, -2, 0, 2,
-            0, 6, 0, 6, 0,
-            -7, 0, 2, 0, -7,
+            0, 1, 0, 1, 0,
+            -4, 0, 2, 0, -4,
         };
 
         private static readonly int[] PawnPsqT =
@@ -121,9 +123,32 @@ namespace GoneuraOu.Evaluation
                 }
             }
 
-            const int tempo = 20;
+            // Tempo
+            const int tempo = 10;
+
+            // // King Safety
+            // var kingSafetyCount =
+            //     (Attacks.KingAttacks[position.Bitboards[(uint)Piece.SenteKing].BitScan()] & ~position.Occupancies[2])
+            //     .Count() -
+            //     (Attacks.KingAttacks[position.Bitboards[(uint)Piece.GoteKing].BitScan()] & ~position.Occupancies[2])
+            //     .Count();
+            // var kingSafety = kingSafetyCount * 3;
 
             return (onboard + hand) * mul + tempo;
+        }
+
+        public static void TunePiece(int p, int value)
+        {
+            PieceValueSole[p] = value;
+            PieceValues[p] = value;
+            PieceValues[p + 10] = -value;
+        }
+
+        public static void TunePocket(int p, int value)
+        {
+            PocketValueSole[p] = value;
+            PocketValues[0, p] = value;
+            PocketValues[1, p] = -value;
         }
 
         static ClassicalEvaluation()
