@@ -7,9 +7,21 @@ namespace GoneuraOu.Search
 {
     public class Searcher
     {
-        public int Nodes;
+        public ulong Nodes;
         public int Ply;
         public uint FinalBestMove;
+
+        // id, ply
+        public uint[,] KillerMoves;
+
+        // pt, square
+        public int[,] HistoryMoves;
+
+        public Searcher()
+        {
+            KillerMoves = new uint[2, 128];
+            HistoryMoves = new int[20, 25];
+        }
 
         public int Negamax(Board.Board board, int alpha, int beta, uint depth)
         {
@@ -27,8 +39,12 @@ namespace GoneuraOu.Search
 
             var bestMove = 0u;
 
-            var moves = board.GeneratePseudoLegalMoves();
-            // moves.Sort((x, y) => board.ScoreMove(x).CompareTo(board.ScoreMove(y)));
+            var moves = board.GeneratePseudoLegalMoves().ToList();
+            
+            moves.Sort((x, y) =>
+                board.ScoreMove(y, this).CompareTo(board.ScoreMove(x, this))
+            );
+
             var legals = 0;
             foreach (var move in moves)
             {
@@ -90,6 +106,8 @@ namespace GoneuraOu.Search
 
         public int Quiescence(Board.Board board, int alpha, int beta)
         {
+            Nodes++;
+
             var evaluation = ClassicalEvaluation.Evaluate(board);
 
             if (evaluation >= beta)
@@ -103,8 +121,10 @@ namespace GoneuraOu.Search
             }
 
             var captures = board.GenerateCaptureMoves().ToList();
-            
-            captures.Sort((x, y) => board.ScoreMove(x).CompareTo(board.ScoreMove(y)));
+
+            captures.Sort((x, y) =>
+                board.ScoreMove(y, this).CompareTo(board.ScoreMove(x, this))
+            );
 
             foreach (var move in captures)
             {

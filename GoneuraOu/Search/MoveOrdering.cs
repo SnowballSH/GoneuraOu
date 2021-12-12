@@ -4,7 +4,7 @@ namespace GoneuraOu.Search
 {
     public static class MoveOrdering
     {
-        public static int ScoreMove(this Board.Board pos, uint move)
+        public static int ScoreMove(this Board.Board pos, uint move, Searcher searcher)
         {
             if (move.GetCapture() == 1)
             {
@@ -14,7 +14,12 @@ namespace GoneuraOu.Search
             }
             else
             {
-                return 0;
+                if (searcher.KillerMoves[0, searcher.Ply] == move)
+                    return 9000;
+                if (searcher.KillerMoves[1, searcher.Ply] == move)
+                    return 8000;
+                
+                return searcher.HistoryMoves[move.GetPieceType(), move.GetTarget()];
             }
         }
 

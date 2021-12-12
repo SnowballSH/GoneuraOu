@@ -53,6 +53,7 @@ namespace GoneuraOu.Board
             Array.Clear(Occupancies);
             Array.Clear(Pocket);
             Array.Clear(PawnFiles);
+            Array.Clear(PieceLoc);
             CaptureHistory.Clear();
 
             var promoteNext = false;
@@ -121,11 +122,8 @@ namespace GoneuraOu.Board
                     Pocket[(int)pocketPt.PieceTurn(), pocketPt.PieceType() * 2 + 1] = true;
                 }
             }
-
-            if (parts.Length >= 2)
-            {
-                CurrentTurn = parts[1] == "w" ? Turn.Sente : Turn.Gote;
-            }
+            
+            CurrentTurn = parts[1] == "w" ? Turn.Sente : Turn.Gote;
         }
 
         /// <summary>

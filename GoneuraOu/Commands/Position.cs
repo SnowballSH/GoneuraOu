@@ -21,7 +21,13 @@ namespace GoneuraOu.Commands
                     break;
                 case "fen":
                 case "sfen":
-                    proto.CurrentPosition.LoadSFen(tokens[index++]);
+                    string fen = tokens[index++];
+                    while (index < tokens.Length && tokens[index] != "moves")
+                    {
+                        fen += " " + tokens[index++];
+                    }
+
+                    proto.CurrentPosition.LoadSFen(fen);
                     break;
                 default:
                     // invalid

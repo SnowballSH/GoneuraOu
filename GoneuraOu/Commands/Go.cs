@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
 using GoneuraOu.Common;
-using GoneuraOu.Evaluation;
-using GoneuraOu.Logic;
 using GoneuraOu.Search;
 
 namespace GoneuraOu.Commands
@@ -34,11 +32,15 @@ namespace GoneuraOu.Commands
 
             var depth = proto.Limit.FixedDepth ?? 5;
 
+            var start = new Stopwatch();
+            
+            start.Start();
+
             var score = searcher.Negamax(proto.CurrentPosition, -7654321, 7654321, depth);
 
             if (searcher.FinalBestMove != 0)
             {
-                Console.WriteLine($"info depth {depth} score cp {score} nodes {searcher.Nodes}");
+                Console.WriteLine($"info depth {depth} score cp {score} nodes {searcher.Nodes} time {start.ElapsedMilliseconds} nps {(start.ElapsedMilliseconds == 0 ? 0 : searcher.Nodes * 1000 / (ulong)start.ElapsedMilliseconds)}");
                 Console.WriteLine($"bestmove {searcher.FinalBestMove.ToUci()}");
             }
         }
