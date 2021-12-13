@@ -2,40 +2,8 @@
 using System;
 using System.Linq;
 using GoneuraOu.Board;
-using GoneuraOu.Common;
 using GoneuraOu.Evaluation;
-using GoneuraOu.Logic;
-using Microsoft.ML.Trainers;
 using NNUE;
-
-string NextPos(Board pos, uint depth)
-{
-    if (depth == 0)
-    {
-        return "";
-    }
-
-    var legals = pos.GeneratePseudoLegalMoves().ToList();
-    var res = "";
-    foreach (var move in legals.OrderBy(_ => Random.Shared.Next())
-        .Skip(Math.Max(legals.Count - 2, 0)))
-    {
-        pos.MakeMoveUnchecked(move);
-        if (pos.IsMyKingAttacked(pos.CurrentTurn.Invert()))
-        {
-            pos.UndoMove(move);
-            continue;
-        }
-
-        res += '\n' + pos.ToFen() + ',' + pos.Evaluate() * (pos.CurrentTurn == Turn.Sente ? 1 : -1);
-
-        res += NextPos(pos, depth - 1);
-
-        pos.UndoMove(move);
-    }
-
-    return res;
-}
 
 var context = new MLContext();
 
