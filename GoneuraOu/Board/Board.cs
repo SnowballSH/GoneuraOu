@@ -126,6 +126,63 @@ namespace GoneuraOu.Board
             CurrentTurn = parts[1] == "w" ? Turn.Sente : Turn.Gote;
         }
 
+        public string ToFen()
+        {
+            var fen = "";
+
+            var connectedBlankCount = 0;
+            
+            for (var i = 0; i < 25; i++)
+            {
+                var p = PieceLoc[i];
+                if (p.HasValue)
+                {
+                    if (connectedBlankCount > 0)
+                    {
+                        fen += connectedBlankCount.ToString();
+                        connectedBlankCount = 0;
+                    }
+
+                    fen += Constants.AsciiPieces[p.Value];
+                }
+                else
+                {
+                    connectedBlankCount++;
+                }
+
+                if (i % 5 == 4 && i != 24)
+                {
+                    if (connectedBlankCount > 0)
+                    {
+                        fen += connectedBlankCount.ToString();
+                        connectedBlankCount = 0;
+                    }
+
+                    fen += '/';
+                }
+            }
+
+            fen += '[';
+            for (var turn = 0; turn < 2; turn++)
+            {
+                for (var index = 0; index < 10; index++)
+                {
+                    var p = Pocket[turn, index];
+                    if (p)
+                    {
+                        fen += Constants.AsciiPieces[index / 2 + turn * 10];
+                    }
+                }
+            }
+
+            fen += ']';
+
+            fen += ' ';
+            fen += CurrentTurn == Turn.Sente ? 'w' : 'b';
+
+            return fen;
+        }
+
         /// <summary>
         /// MakeMove, updating self
         /// </summary>

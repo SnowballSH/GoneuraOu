@@ -4,6 +4,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GoneuraOu", "GoneuraOu\Gone
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "GoneuraOuTest", "GoneuraOuTest\GoneuraOuTest.fsproj", "{61C002C7-B0C6-490B-B082-0758999F656B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NNUE", "NNUE\NNUE.csproj", "{9F0C506F-6890-47AD-A694-326EB4054D98}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -18,5 +20,9 @@ Global
 		{61C002C7-B0C6-490B-B082-0758999F656B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{61C002C7-B0C6-490B-B082-0758999F656B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{61C002C7-B0C6-490B-B082-0758999F656B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9F0C506F-6890-47AD-A694-326EB4054D98}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9F0C506F-6890-47AD-A694-326EB4054D98}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9F0C506F-6890-47AD-A694-326EB4054D98}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9F0C506F-6890-47AD-A694-326EB4054D98}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
