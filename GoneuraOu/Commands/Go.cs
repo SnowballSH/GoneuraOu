@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 using GoneuraOu.Search;
 
 namespace GoneuraOu.Commands
@@ -31,6 +32,8 @@ namespace GoneuraOu.Commands
             var depth = proto.Limit.FixedDepth ?? 5;
 
             searcher.DoSearch(proto.CurrentPosition, depth);
+
+            GC.Collect();
         }
     }
 }

@@ -280,6 +280,14 @@ namespace GoneuraOu.Logic
                 }
             }
 
+            foreach (var k in GenerateCaptureMoves(board))
+            {
+                yield return k;
+            }
+        }
+
+        public static IEnumerable<uint> GenerateDropMoves(this Board.Board board)
+        {
             // DROPS
             for (var pi = 0; pi < 10; pi += 2)
             {
@@ -443,7 +451,6 @@ namespace GoneuraOu.Logic
 
                         if (Convert.ToInt32(board.Occupancies[(int)board.CurrentTurn ^ 1].GetBitAt(target)) == 1)
                         {
-
                             var promote = board.CurrentTurn == Turn.Sente
                                 ? target <= (int)Square.S1A || source <= (int)Square.S1A
                                 : target >= (int)Square.S5E || source >= (int)Square.S5E;

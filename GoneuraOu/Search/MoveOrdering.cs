@@ -6,6 +6,11 @@ namespace GoneuraOu.Search
     {
         public static int ScoreMove(this Board.Board pos, uint move, Searcher searcher)
         {
+            if (searcher.PrincipalVariationTable[0, searcher.Ply] == move)
+            {
+                return 20000;
+            }
+
             if (move.GetCapture() == 1)
             {
                 var sp = move.GetPieceType();

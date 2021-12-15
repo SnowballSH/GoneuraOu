@@ -7,11 +7,10 @@ using GoneuraOu.Logic;
 
 namespace GoneuraOu.Search
 {
-    public class Searcher
+    public partial class Searcher
     {
         public ulong Nodes;
         public int Ply;
-        public uint FinalBestMove;
 
         // id, ply
         public uint[,] KillerMoves;
@@ -34,16 +33,36 @@ namespace GoneuraOu.Search
             PrincipalVariationTable = new uint[MaxPly, MaxPly];
         }
 
+        public void Reset()
+        {
+            KillerMoves = new uint[2, MaxPly];
+            HistoryMoves = new int[20, 25];
+            PrincipalVariationLengths = new int[MaxPly];
+            PrincipalVariationTable = new uint[MaxPly, MaxPly];
+        }
+
         public void DoSearch(Board.Board board, uint depth)
+        {
+            Reset();
+
+            IterativeDeepening(board, depth);
+
+            Console.WriteLine($"bestmove {PrincipalVariationTable[0, 0].ToUci()}");
+        }
+
+        /// <summary>
+        /// Iterative deepening search
+        /// </summary>
+        public void IterativeDeepening(Board.Board board, uint maxDepth)
         {
             var start = new Stopwatch();
 
             start.Start();
 
-            var score = Negamax(board, -7654321, 7654321, depth);
-
-            if (FinalBestMove != 0)
+            for (var depth = 1u; depth <= maxDepth; depth++)
             {
+                var score = Negamax(board, -7654321, 7654321, depth);
+
                 Console.Write(
                     $"info depth {depth} score cp {score} nodes {Nodes} time {start.ElapsedMilliseconds} " +
                     $"nps {(start.ElapsedMilliseconds == 0 ? 0 : Nodes * 1000 / (ulong)start.ElapsedMilliseconds)} " +
@@ -57,27 +76,33 @@ namespace GoneuraOu.Search
                 }
 
                 Console.WriteLine();
-                Console.WriteLine($"bestmove {FinalBestMove.ToUci()}");
             }
         }
 
         public int Negamax(Board.Board board, int alpha, int beta, uint depth)
         {
+            var foundPv = false;
+
             PrincipalVariationLengths[Ply] = Ply;
 
             if (depth == 0)
             {
+                // Search for captures
                 return Quiescence(board, alpha, beta);
+            }
+
+            if (Ply > MaxPly - 1)
+            {
+                return ClassicalEvaluation.Evaluate(board);
             }
 
             Nodes++;
 
+            // Check extension
             if (board.IsMyKingAttacked(board.CurrentTurn.Invert()))
             {
                 depth++;
             }
-
-            var bestMove = 0u;
 
             var moves = board.GeneratePseudoLegalMoves().ToList();
 
@@ -89,6 +114,7 @@ namespace GoneuraOu.Search
             foreach (var move in moves)
             {
                 board.MakeMoveUnchecked(move);
+                // Illegal move?
                 if (board.IsMyKingAttacked(board.CurrentTurn.Invert()))
                 {
                     board.UndoMove(move);
@@ -99,7 +125,23 @@ namespace GoneuraOu.Search
 
                 Ply++;
 
-                var score = -Negamax(board, -beta, -alpha, depth - 1);
+                int score;
+
+                // PVS Search
+                if (foundPv)
+                {
+                    score = -Negamax(board, -alpha - 1, -alpha, depth - 1);
+
+                    // Prove this position is good...
+                    if (score > alpha && score < beta)
+                    {
+                        score = -Negamax(board, -beta, -alpha, depth - 1);
+                    }
+                }
+                else
+                {
+                    score = -Negamax(board, -beta, -alpha, depth - 1);
+                }
 
                 board.UndoMove(move);
                 Ply--;
@@ -130,6 +172,9 @@ namespace GoneuraOu.Search
                     // PV
                     alpha = score;
 
+                    // PVS Enable
+                    foundPv = true;
+
                     PrincipalVariationTable[Ply, Ply] = move;
                     for (var next = Ply + 1; next < PrincipalVariationLengths[Ply + 1]; next++)
                     {
@@ -137,30 +182,12 @@ namespace GoneuraOu.Search
                     }
 
                     PrincipalVariationLengths[Ply] = PrincipalVariationLengths[Ply + 1];
-
-                    if (Ply == 0)
-                    {
-                        bestMove = move;
-                    }
                 }
             }
 
-            if (legals > 0)
+            if (legals == 0)
             {
-                FinalBestMove = bestMove;
-            }
-            else
-            {
-                if (board.IsMyKingAttacked(board.CurrentTurn))
-                {
-                    // checkmate
-                    return -987654 + Ply;
-                }
-                else
-                {
-                    // stalemate: loses
-                    return -987654 + Ply;
-                }
+                return -987654 + Ply;
             }
 
             return alpha;
@@ -193,6 +220,8 @@ namespace GoneuraOu.Search
                 board.ScoreMove(y, this).CompareTo(board.ScoreMove(x, this))
             );
 
+            var legals = 0;
+
             foreach (var move in captures)
             {
                 board.MakeMoveUnchecked(move);
@@ -203,6 +232,8 @@ namespace GoneuraOu.Search
                 }
 
                 Ply++;
+
+                legals++;
 
                 var score = -Quiescence(board, -beta, -alpha);
 
@@ -221,6 +252,11 @@ namespace GoneuraOu.Search
                 {
                     alpha = score;
                 }
+            }
+
+            if (legals == 0)
+            {
+                return -987654 + Ply;
             }
 
             return alpha;
