@@ -1,6 +1,7 @@
-﻿using System.Linq;
+﻿using System;
 using GoneuraOu.Bitboard;
 using GoneuraOu.Board;
+using GoneuraOu.Common;
 using GoneuraOu.Logic;
 
 namespace GoneuraOu.Evaluation
@@ -9,25 +10,25 @@ namespace GoneuraOu.Evaluation
     {
         public static readonly int[] PieceValueSole =
         {
-            100, // Pawn 
-            353, // Gold
-            300, // Silver
+            96, // Pawn 
+            363, // Gold
+            310, // Silver
             470, // Rook
             426, // Bishop
             10000, // King
-            340, // Tokin
-            325, // Promoted Silver
+            350, // Tokin
+            335, // Promoted Silver
             760, // Dragon
             720 // Horse
         };
 
         public static readonly int[] PocketValueSole =
         {
-            120, // Pawn 
-            400, // Gold
-            365, // Silver
-            740, // Rook
-            695 // Bishop
+            105, // Pawn 
+            399, // Gold
+            327, // Silver
+            420, // Rook
+            386 // Bishop
         };
 
         private static readonly int[] PieceValues;
@@ -44,45 +45,64 @@ namespace GoneuraOu.Evaluation
 
         private static readonly int[] KingPsqT =
         {
-            -4, 0, 2, 0, -4,
-            0, 1, 0, 1, 0,
-            2, 0, -2, 0, 2,
-            0, 1, 0, 1, 0,
-            -4, 0, 2, 0, -4,
+            10, 0, 2, 0, 14,
+            0, -1, 0, -3, 0,
+            2, 0, -5, 0, 2,
+            0, -3, 0, -1, 0,
+            14, 0, 2, 0, -10,
         };
 
         private static readonly int[] PawnPsqT =
         {
             0, 0, 0, 0, 0,
-            40, 40, 35, 40, 40,
-            14, 14, 10, 14, 14,
+            20, 20, 17, 20, 20,
+            14, 14, 11, 14, 14,
             3, 3, 0, 3, 3,
             -5, -5, -7, -5, -5,
         };
 
+        private static readonly int[] GoldPsqT =
+        {
+            -7, -2, -1, -2, -7,
+            -1, 3, 4, 3, -1,
+            -1, 5, 6, 5, -1,
+            -1, 2, 3, 2, -1,
+            -10, -4, -1, -4, -10,
+        };
+
         private static readonly int[] RookPsqT =
         {
-            16, 4, 6, 4, 16,
-            2, 6, 10, 6, 2,
+            14, 4, 6, 4, 14,
+            2, 6, 9, 6, 2,
             2, 8, 20, 8, 2,
             0, 4, 8, 4, 0,
-            12, 0, 2, 0, 12,
+            10, 0, 2, 0, 10,
         };
 
         private static readonly int[] BishopPsqT =
         {
             1, 0, 2, 0, 1,
             0, 5, 6, 5, 0,
-            2, 6, 16, 6, 2,
+            2, 6, 14, 6, 2,
             0, 5, 6, 5, 0,
             1, 0, 2, 0, 1,
         };
 
-        public static int Evaluate(this Board.Board position)
+        public static int Evaluate(this Board.Board position, bool debug = false)
         {
             var mul = -2 * (int)position.CurrentTurn + 1;
 
+            // todo: incremental update of king location
+            var sking = position.Bitboards[(uint)Piece.SenteKing].BitScan();
+            var gking = position.Bitboards[(uint)Piece.GoteKing].BitScan();
+
             var onboard = 0;
+            var distanceSente = 0;
+            var distanceGote = 0;
+
+            var senteRookMobility = 0;
+            var goteRookMobility = 0;
+
             var idx = 0;
             foreach (var p in position.PieceLoc)
             {
@@ -93,48 +113,114 @@ namespace GoneuraOu.Evaluation
                         (Piece)p switch
                         {
                             Piece.SenteKing => KingPsqT[idx],
-                            Piece.GoteKing => -KingPsqT[idx],
+                            Piece.GoteKing => -KingPsqT[FlipIndex[idx]],
                             Piece.SentePawn => PawnPsqT[idx],
                             Piece.GotePawn => -PawnPsqT[FlipIndex[idx]],
                             Piece.SenteRook or Piece.SenteDragon => RookPsqT[idx],
                             Piece.GoteRook or Piece.GoteDragon => -RookPsqT[FlipIndex[idx]],
                             Piece.SenteBishop or Piece.SenteHorse => BishopPsqT[idx],
                             Piece.GoteBishop or Piece.GoteHorse => -BishopPsqT[FlipIndex[idx]],
+                            Piece.SenteGold or Piece.SenteTokin or Piece.SentePromotedSilver or Piece.SenteSilver =>
+                                GoldPsqT[idx],
+                            Piece.GoteGold or Piece.GoteTokin or Piece.GotePromotedSilver or Piece.GoteSilver =>
+                                -GoldPsqT[FlipIndex[idx]],
                             _ => 0
-                        };
+                        } * 2 / 3;
 
                     onboard += material;
                     onboard += psqt;
+
+                    switch ((Piece)p)
+                    {
+                        case Piece.SentePawn:
+                        case Piece.SenteGold:
+                        case Piece.SenteSilver:
+                        case Piece.SenteTokin:
+                        case Piece.SentePromotedSilver:
+                            distanceSente -= Utils.DistanceBetween(sking, idx) - 3;
+                            distanceSente += 7 - Utils.DistanceBetween(gking, idx);
+                            break;
+
+                        case Piece.GotePawn:
+                        case Piece.GoteGold:
+                        case Piece.GoteSilver:
+                        case Piece.GoteTokin:
+                        case Piece.GotePromotedSilver:
+                            distanceGote -= Utils.DistanceBetween(gking, idx) - 3;
+                            distanceGote += 7 - Utils.DistanceBetween(sking, idx);
+                            break;
+
+                        case Piece.SenteRook:
+                            senteRookMobility += Attacks.GetRookAttacks(idx, position.Occupancies[2]).Count();
+                            break;
+                        case Piece.SenteDragon:
+                            senteRookMobility += Attacks.GetDragonAttacks(idx, position.Occupancies[2]).Count();
+                            break;
+
+                        case Piece.GoteRook:
+                            goteRookMobility += Attacks.GetRookAttacks(idx, position.Occupancies[2]).Count();
+                            break;
+                        case Piece.GoteDragon:
+                            goteRookMobility += Attacks.GetDragonAttacks(idx, position.Occupancies[2]).Count();
+                            break;
+                    }
                 }
 
                 idx++;
             }
 
+            // pocket
+
             var hand = 0;
 
             for (var turn = 0; turn <= 1; turn++)
             {
-                for (var pi = 0; pi < 5; pi++)
+                for (var pi = 0; pi < 10; pi++)
                 {
                     if (position.Pocket[turn, pi])
                     {
-                        hand += PocketValues[turn, pi];
+                        hand += PocketValues[turn, pi / 2];
                     }
                 }
             }
 
+            var distance = distanceSente - distanceGote;
+            var mobility = senteRookMobility - goteRookMobility;
+
             // Tempo
-            const int tempo = 10;
+            const int tempo = 30;
 
-            // // King Safety
-            // var kingSafetyCount =
-            //     (Attacks.KingAttacks[position.Bitboards[(uint)Piece.SenteKing].BitScan()] & ~position.Occupancies[2])
-            //     .Count() -
-            //     (Attacks.KingAttacks[position.Bitboards[(uint)Piece.GoteKing].BitScan()] & ~position.Occupancies[2])
-            //     .Count();
-            // var kingSafety = kingSafetyCount * 3;
+            // King Safety
+            var kingSafetySente =
+                ((Attacks.KingAttacks[sking] & position.Occupancies[0]).Count() -
+                 Attacks.KingAttacks[sking].Count() / 2) * 7;
+            var kingSafetyGote =
+                ((Attacks.KingAttacks[gking] & position.Occupancies[1]).Count() -
+                 Attacks.KingAttacks[gking].Count() / 2) * 7;
+            var kingSafetyCount =
+                kingSafetySente - kingSafetyGote;
 
-            return (onboard + hand) * mul + tempo;
+            var sum = (onboard + hand + kingSafetyCount * 7 + distance * 7 + mobility * 3) * mul + tempo;
+
+            if (debug)
+            {
+                Console.Write(
+                    $"Material: {onboard}\n" +
+                    $"Hand: {hand}\n" +
+                    "---------------------\n" +
+                    "Type           Sente Gote\n" +
+                    $"King Safety:   {kingSafetySente * 7,-5} {kingSafetyGote * 7,-5}\n" +
+                    $"Distance:      {distanceSente * 7,-5} {distanceGote * 7,-5}\n" +
+                    $"Rook Mobility: {senteRookMobility * 3,-5} {goteRookMobility * 3,-5}\n" +
+                    "---------------------\n" +
+                    "For Current Player:\n" +
+                    $"Tempo: {tempo}\n" +
+                    "---------------------\n" +
+                    $"Sum: {sum}\n"
+                );
+            }
+
+            return sum;
         }
 
         public static void TunePiece(int p, int value)

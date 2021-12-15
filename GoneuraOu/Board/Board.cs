@@ -122,7 +122,7 @@ namespace GoneuraOu.Board
                     Pocket[(int)pocketPt.PieceTurn(), pocketPt.PieceType() * 2 + 1] = true;
                 }
             }
-            
+
             CurrentTurn = parts[1] == "w" ? Turn.Sente : Turn.Gote;
         }
 
@@ -131,7 +131,7 @@ namespace GoneuraOu.Board
             var fen = "";
 
             var connectedBlankCount = 0;
-            
+
             for (var i = 0; i < 25; i++)
             {
                 var p = PieceLoc[i];

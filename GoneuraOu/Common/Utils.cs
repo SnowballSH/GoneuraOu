@@ -59,5 +59,15 @@ namespace GoneuraOu.Common
         {
             Console.WriteLine(Convert.ToString(b, 2).PadLeft(8, '0'));
         }
+
+        public static int DistanceBetween(int a, int b)
+        {
+            var x1 = a / 5;
+            var y1 = a % 5;
+            var x2 = b / 5;
+            var y2 = b % 5;
+
+            return Math.Abs(x1 - x2) + Math.Abs(y1 - y2);
+        }
     }
 }

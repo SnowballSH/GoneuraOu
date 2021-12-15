@@ -1,4 +1,5 @@
 ﻿using System;
+using GoneuraOu.Evaluation;
 
 namespace GoneuraOu.Commands
 {
@@ -41,7 +42,6 @@ namespace GoneuraOu.Commands
                     case "isready":
                         if (initAttacks)
                         {
-                            Perft.PerftInternal(new Board.Board(), 3);
                             initAttacks = false;
                         }
 
@@ -71,6 +71,14 @@ namespace GoneuraOu.Commands
                     case "go":
                         this.DoGo(tokens);
                         GC.Collect();
+                        break;
+
+                    case "eval":
+                        ClassicalEvaluation.Evaluate(CurrentPosition, true);
+                        break;
+
+                    case "d":
+                        CurrentPosition.PrintBoard();
                         break;
 
                     case "position":

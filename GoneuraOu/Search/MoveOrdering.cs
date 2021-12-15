@@ -12,15 +12,13 @@ namespace GoneuraOu.Search
                 var tp = pos.PieceLoc[move.GetTarget()]!;
                 return MvvLvaTable[(int)sp, (int)tp];
             }
-            else
-            {
-                if (searcher.KillerMoves[0, searcher.Ply] == move)
-                    return 9000;
-                if (searcher.KillerMoves[1, searcher.Ply] == move)
-                    return 8000;
-                
-                return searcher.HistoryMoves[move.GetPieceType(), move.GetTarget()];
-            }
+
+            if (searcher.KillerMoves[0, searcher.Ply] == move)
+                return 9000;
+            if (searcher.KillerMoves[1, searcher.Ply] == move)
+                return 8000;
+
+            return searcher.HistoryMoves[move.GetPieceType(), move.GetTarget()];
         }
 
         //     P   G   S   R   B   K   +P  +S  +R  +B
