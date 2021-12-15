@@ -50,7 +50,7 @@ namespace GoneuraOu.Search
                     "pv"
                 );
 
-                for (var c = 0; c < PrincipalVariationLengths[0] - 1; c++)
+                for (var c = 0; c < PrincipalVariationLengths[0]; c++)
                 {
                     Console.Write(' ');
                     Console.Write(PrincipalVariationTable[0, c].ToUci());
