@@ -2,9 +2,11 @@
 {
     public static class NeuralNetAdapt
     {
+        public const uint NnSize = 25 * 20 + 2 * 20;
+        
         public static bool[] ToNeuralNetFormat(this Board board)
         {
-            var activated = new bool[25 * 20 + 2 * 20];
+            var activated = new bool[NnSize];
             for (var sq = 0; sq < 25; sq++)
             {
                 for (var pt = 0; pt < 20; pt++)

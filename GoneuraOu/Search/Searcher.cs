@@ -220,8 +220,6 @@ namespace GoneuraOu.Search
                 board.ScoreMove(y, this).CompareTo(board.ScoreMove(x, this))
             );
 
-            var legals = 0;
-
             foreach (var move in captures)
             {
                 board.MakeMoveUnchecked(move);
@@ -232,8 +230,6 @@ namespace GoneuraOu.Search
                 }
 
                 Ply++;
-
-                legals++;
 
                 var score = -Quiescence(board, -beta, -alpha);
 
@@ -252,11 +248,6 @@ namespace GoneuraOu.Search
                 {
                     alpha = score;
                 }
-            }
-
-            if (legals == 0)
-            {
-                return -987654 + Ply;
             }
 
             return alpha;

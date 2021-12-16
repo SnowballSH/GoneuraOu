@@ -18,6 +18,11 @@ namespace GoneuraOu.Search
                 return MvvLvaTable[(int)sp, (int)tp];
             }
 
+            if (move.GetDrop() == 1)
+            {
+                return 15000;
+            }
+
             if (searcher.KillerMoves[0, searcher.Ply] == move)
                 return 9000;
             if (searcher.KillerMoves[1, searcher.Ply] == move)
