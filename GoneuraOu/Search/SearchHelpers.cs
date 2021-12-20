@@ -12,7 +12,7 @@ namespace GoneuraOu.Search
 
         public static ulong CalcTime(SearchLimit limit)
         {
-            return limit.MoveTime - 40 ?? (limit.MyTime / 24 + limit.MyInc - 40 ?? 0);
+            return limit.MoveTime - 40 ?? (limit.MyTime / 15 + limit.MyInc - 40 ?? 0);
         }
     }
 }

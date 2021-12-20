@@ -20,7 +20,7 @@ namespace GoneuraOu.Search
         public int[,] HistoryMoves;
 
         // pv
-        public int[] PrincipalVariationLengths;
+        public uint[] PrincipalVariationLengths;
         public uint[,] PrincipalVariationTable;
 
         private Stopwatch _timer;
@@ -31,7 +31,7 @@ namespace GoneuraOu.Search
         {
             KillerMoves = new uint[2, MaxPly];
             HistoryMoves = new int[20, 25];
-            PrincipalVariationLengths = new int[MaxPly];
+            PrincipalVariationLengths = new uint[MaxPly];
             PrincipalVariationTable = new uint[MaxPly, MaxPly];
             _timer = new Stopwatch();
             _maxTime = null;
@@ -41,7 +41,7 @@ namespace GoneuraOu.Search
         {
             KillerMoves = new uint[2, MaxPly];
             HistoryMoves = new int[20, 25];
-            PrincipalVariationLengths = new int[MaxPly];
+            PrincipalVariationLengths = new uint[MaxPly];
             PrincipalVariationTable = new uint[MaxPly, MaxPly];
             _timer = new Stopwatch();
             _maxTime = null;
@@ -54,7 +54,7 @@ namespace GoneuraOu.Search
             _maxTime = CalcTime(limit);
             _maxTime = _maxTime == 0 ? null : _maxTime;
 
-            IterativeDeepening(board, _maxTime.HasValue ? MaxPly : limit.FixedDepth ?? 10);
+            IterativeDeepening(board, limit.FixedDepth ?? MaxPly);
 
             Console.WriteLine($"bestmove {PrincipalVariationTable[0, 0].ToUci()}");
         }
@@ -132,6 +132,8 @@ namespace GoneuraOu.Search
         public int Negamax(Board.Board board, int alpha, int beta, uint depth, bool doNull = true)
         {
             var foundPv = false;
+            
+            PrincipalVariationLengths[Ply] = Ply;
 
             if (depth == 0)
             {

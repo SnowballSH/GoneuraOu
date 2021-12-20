@@ -280,7 +280,7 @@ namespace GoneuraOu.Logic
                 }
             }
 
-            foreach (var k in GenerateCaptureMoves(board))
+            foreach (var k in GenerateDropMoves(board))
             {
                 yield return k;
             }
