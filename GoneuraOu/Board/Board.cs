@@ -271,7 +271,7 @@ namespace GoneuraOu.Board
 
             CurrentTurn = CurrentTurn.Invert();
         }
-
+        
         public void UndoMove(uint move)
         {
             CurrentTurn = CurrentTurn.Invert();
@@ -362,6 +362,17 @@ namespace GoneuraOu.Board
 
             Occupancies[2] = Occupancies[0] | Occupancies[1];
         }
+        
+        public void MakeNullMove()
+        {
+            CurrentTurn = CurrentTurn.Invert();
+        }
+        
+        public void UndoNullMove()
+        {
+            CurrentTurn = CurrentTurn.Invert();
+        }
+
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool IsMyKingAttacked(Turn turn)

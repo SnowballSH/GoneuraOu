@@ -231,11 +231,7 @@ namespace GoneuraOu.Evaluation
 
             var sum = (onboard + hand + kingSafetyCount * 7 + distance * 7 + mobility * 3) * mul;
 
-            var tempo = Math.Abs(sum) < 30
-                ? 18
-                : Math.Abs(sum) < 100
-                    ? 9
-                    : 0;
+            const int tempo = 3;
 
             sum += tempo;
 

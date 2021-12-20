@@ -22,8 +22,6 @@ namespace GoneuraOu.Search
         public int[] PrincipalVariationLengths;
         public uint[,] PrincipalVariationTable;
 
-        public const uint MaxPly = 128;
-
 
         public Searcher()
         {
@@ -79,7 +77,7 @@ namespace GoneuraOu.Search
             }
         }
 
-        public int Negamax(Board.Board board, int alpha, int beta, uint depth)
+        public int Negamax(Board.Board board, int alpha, int beta, uint depth, bool doNull = true)
         {
             var foundPv = false;
 
@@ -98,10 +96,46 @@ namespace GoneuraOu.Search
 
             Nodes++;
 
+            var incheck = board.IsMyKingAttacked(board.CurrentTurn);
+
             // Check extension
-            if (board.IsMyKingAttacked(board.CurrentTurn.Invert()))
+            if (incheck)
             {
                 depth++;
+            }
+
+            if (!incheck)
+            {
+                var eval = board.Evaluate();
+
+                // Razoring
+                if (depth < 2 && eval + 350 <= alpha)
+                {
+                    return Quiescence(board, alpha, beta);
+                }
+
+                if (doNull)
+                {
+                    // Null Move Pruning
+                    var r = 4 + Math.Min(3, depth / 4);
+                    if (eval >= beta + 100)
+                        r++;
+
+                    r = Math.Min(r, depth);
+
+                    if (depth >= 2)
+                    {
+                        board.MakeNullMove();
+                        var score = -Negamax(board, -beta, -beta + 1,
+                            (uint)Math.Max((int)depth - r, 0), false);
+                        board.UndoNullMove();
+
+                        if (score >= beta)
+                        {
+                            return score;
+                        }
+                    }
+                }
             }
 
             var moves = board.GeneratePseudoLegalMoves().ToList();
@@ -130,12 +164,29 @@ namespace GoneuraOu.Search
                 // PVS Search
                 if (foundPv)
                 {
-                    score = -Negamax(board, -alpha - 1, -alpha, depth - 1);
-
-                    // Prove this position is good...
-                    if (score > alpha && score < beta)
+                    if (legals >= FullDepthLimit && depth >= ReductionLimit
+                                                 && move.GetCapture() == 0
+                                                 && move.GetDrop() == 0
+                                                 && PrincipalVariationTable[0, Ply] != move
+                                                 && !incheck
+                                                 && board.IsMyKingAttacked(board.CurrentTurn.Invert()))
                     {
-                        score = -Negamax(board, -beta, -alpha, depth - 1);
+                        score = -Negamax(board, -alpha - 1, -alpha, depth - 2);
+                    }
+                    else
+                    {
+                        score = alpha + 1;
+                    }
+
+                    if (score > alpha)
+                    {
+                        score = -Negamax(board, -alpha - 1, -alpha, depth - 1);
+
+                        // Prove this position is good...
+                        if (score > alpha && score < beta)
+                        {
+                            score = -Negamax(board, -beta, -alpha, depth - 1);
+                        }
                     }
                 }
                 else
@@ -197,7 +248,7 @@ namespace GoneuraOu.Search
         {
             Nodes++;
 
-            var evaluation = ClassicalEvaluation.Evaluate(board);
+            var evaluation = board.Evaluate();
 
             if (evaluation >= beta)
             {

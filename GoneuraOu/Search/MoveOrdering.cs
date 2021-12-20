@@ -15,7 +15,7 @@ namespace GoneuraOu.Search
             {
                 var sp = move.GetPieceType();
                 var tp = pos.PieceLoc[move.GetTarget()]!;
-                return MvvLvaTable[(int)sp, (int)tp];
+                return MvvLvaTable[(int)sp, (int)tp] + 50;
             }
 
             if (move.GetDrop() == 1)
