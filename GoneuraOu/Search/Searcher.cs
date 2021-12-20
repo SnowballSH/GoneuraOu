@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Linq;
+using GoneuraOu.Commands;
 using GoneuraOu.Common;
 using GoneuraOu.Evaluation;
 using GoneuraOu.Logic;
@@ -10,7 +11,7 @@ namespace GoneuraOu.Search
     public partial class Searcher
     {
         public ulong Nodes;
-        public int Ply;
+        public uint Ply;
 
         // id, ply
         public uint[,] KillerMoves;
@@ -22,6 +23,9 @@ namespace GoneuraOu.Search
         public int[] PrincipalVariationLengths;
         public uint[,] PrincipalVariationTable;
 
+        private Stopwatch _timer;
+        private ulong? _maxTime;
+
 
         public Searcher()
         {
@@ -29,6 +33,8 @@ namespace GoneuraOu.Search
             HistoryMoves = new int[20, 25];
             PrincipalVariationLengths = new int[MaxPly];
             PrincipalVariationTable = new uint[MaxPly, MaxPly];
+            _timer = new Stopwatch();
+            _maxTime = null;
         }
 
         public void Reset()
@@ -37,13 +43,18 @@ namespace GoneuraOu.Search
             HistoryMoves = new int[20, 25];
             PrincipalVariationLengths = new int[MaxPly];
             PrincipalVariationTable = new uint[MaxPly, MaxPly];
+            _timer = new Stopwatch();
+            _maxTime = null;
         }
 
-        public void DoSearch(Board.Board board, uint depth)
+        public void DoSearch(Board.Board board, SearchLimit limit)
         {
             Reset();
 
-            IterativeDeepening(board, depth);
+            _maxTime = CalcTime(limit);
+            _maxTime = _maxTime == 0 ? null : _maxTime;
+
+            IterativeDeepening(board, _maxTime.HasValue ? MaxPly : limit.FixedDepth ?? 10);
 
             Console.WriteLine($"bestmove {PrincipalVariationTable[0, 0].ToUci()}");
         }
@@ -53,17 +64,30 @@ namespace GoneuraOu.Search
         /// </summary>
         public void IterativeDeepening(Board.Board board, uint maxDepth)
         {
-            var start = new Stopwatch();
+            _timer.Start();
 
-            start.Start();
+            var alpha = -Infinity;
+            var beta = Infinity;
+
+            const int window = 50;
+
+            uint depthReached = 0;
+            var score = 0;
 
             for (var depth = 1u; depth <= maxDepth; depth++)
             {
-                var score = Negamax(board, -7654321, 7654321, depth);
+                var newScore = Negamax(board, alpha, beta, depth);
+
+                if (_maxTime.HasValue && (ulong)_timer.ElapsedMilliseconds > _maxTime.Value)
+                {
+                    break;
+                }
+
+                score = newScore;
 
                 Console.Write(
-                    $"info depth {depth} score cp {score} nodes {Nodes} time {start.ElapsedMilliseconds} " +
-                    $"nps {(start.ElapsedMilliseconds == 0 ? 0 : Nodes * 1000 / (ulong)start.ElapsedMilliseconds)} " +
+                    $"info depth {depth} score cp {score} nodes {Nodes} time {_timer.ElapsedMilliseconds} " +
+                    $"nps {(_timer.ElapsedMilliseconds == 0 ? 0 : Nodes * 1000 / (ulong)_timer.ElapsedMilliseconds)} " +
                     "pv"
                 );
 
@@ -74,14 +98,40 @@ namespace GoneuraOu.Search
                 }
 
                 Console.WriteLine();
+
+                if (score <= alpha || score >= beta)
+                {
+                    alpha = -Infinity;
+                    beta = Infinity;
+                    continue;
+                }
+
+                alpha = score - window;
+                beta = score + window;
+
+                depthReached = depth;
             }
+
+            _timer.Stop();
+
+            Console.Write(
+                $"info depth {depthReached} score cp {score} nodes {Nodes} time {_timer.ElapsedMilliseconds} " +
+                $"nps {(_timer.ElapsedMilliseconds == 0 ? 0 : Nodes * 1000 / (ulong)_timer.ElapsedMilliseconds)} " +
+                "pv"
+            );
+
+            for (var c = 0; c < PrincipalVariationLengths[0]; c++)
+            {
+                Console.Write(' ');
+                Console.Write(PrincipalVariationTable[0, c].ToUci());
+            }
+
+            Console.WriteLine();
         }
 
         public int Negamax(Board.Board board, int alpha, int beta, uint depth, bool doNull = true)
         {
             var foundPv = false;
-
-            PrincipalVariationLengths[Ply] = Ply;
 
             if (depth == 0)
             {
@@ -91,7 +141,7 @@ namespace GoneuraOu.Search
 
             if (Ply > MaxPly - 1)
             {
-                return ClassicalEvaluation.Evaluate(board);
+                return board.Evaluate();
             }
 
             Nodes++;
@@ -126,9 +176,16 @@ namespace GoneuraOu.Search
                     if (depth >= 2)
                     {
                         board.MakeNullMove();
+                        Ply++;
                         var score = -Negamax(board, -beta, -beta + 1,
                             (uint)Math.Max((int)depth - r, 0), false);
                         board.UndoNullMove();
+                        Ply--;
+
+                        if (_maxTime.HasValue && (ulong)_timer.ElapsedMilliseconds > _maxTime.Value)
+                        {
+                            return score;
+                        }
 
                         if (score >= beta)
                         {
@@ -172,6 +229,12 @@ namespace GoneuraOu.Search
                                                  && board.IsMyKingAttacked(board.CurrentTurn.Invert()))
                     {
                         score = -Negamax(board, -alpha - 1, -alpha, depth - 2);
+                        if (_maxTime.HasValue && (ulong)_timer.ElapsedMilliseconds > _maxTime.Value)
+                        {
+                            board.UndoMove(move);
+                            Ply--;
+                            return score;
+                        }
                     }
                     else
                     {
@@ -181,17 +244,35 @@ namespace GoneuraOu.Search
                     if (score > alpha)
                     {
                         score = -Negamax(board, -alpha - 1, -alpha, depth - 1);
+                        if (_maxTime.HasValue && (ulong)_timer.ElapsedMilliseconds > _maxTime.Value)
+                        {
+                            board.UndoMove(move);
+                            Ply--;
+                            return score;
+                        }
 
                         // Prove this position is good...
                         if (score > alpha && score < beta)
                         {
                             score = -Negamax(board, -beta, -alpha, depth - 1);
+                            if (_maxTime.HasValue && (ulong)_timer.ElapsedMilliseconds > _maxTime.Value)
+                            {
+                                board.UndoMove(move);
+                                Ply--;
+                                return score;
+                            }
                         }
                     }
                 }
                 else
                 {
                     score = -Negamax(board, -beta, -alpha, depth - 1);
+                    if (_maxTime.HasValue && (ulong)_timer.ElapsedMilliseconds > _maxTime.Value)
+                    {
+                        board.UndoMove(move);
+                        Ply--;
+                        return score;
+                    }
                 }
 
                 board.UndoMove(move);
@@ -238,7 +319,7 @@ namespace GoneuraOu.Search
 
             if (legals == 0)
             {
-                return -987654 + Ply;
+                return (int)Ply - 987654;
             }
 
             return alpha;
@@ -286,6 +367,11 @@ namespace GoneuraOu.Search
 
                 board.UndoMove(move);
                 Ply--;
+
+                if (_maxTime.HasValue && (ulong)_timer.ElapsedMilliseconds > _maxTime.Value)
+                {
+                    return score;
+                }
 
                 // fail-hard beta cutoff
                 if (score >= beta)

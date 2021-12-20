@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using GoneuraOu.Board;
 using GoneuraOu.Search;
 
 namespace GoneuraOu.Commands
@@ -21,17 +22,43 @@ namespace GoneuraOu.Commands
                         proto.Limit.FixedDepth = uint.Parse(tokens[index++]);
                         break;
 
+                    case "infinite":
+                        proto.Limit.FixedDepth = Searcher.MaxPly;
+                        break;
+
                     case "perft":
-                        Perft.PerftRootPrint(proto.CurrentPosition, uint.Parse(tokens[index++]));
+                        Perft.PerftRootPrint(proto.CurrentPosition, uint.Parse(tokens[index]));
                         return;
+
+                    case "wtime":
+                        if (proto.CurrentPosition.CurrentTurn == Turn.Sente)
+                            proto.Limit.MyTime = ulong.Parse(tokens[index++]);
+                        break;
+
+                    case "btime":
+                        if (proto.CurrentPosition.CurrentTurn == Turn.Gote)
+                            proto.Limit.MyTime = ulong.Parse(tokens[index++]);
+                        break;
+                    
+                    case "winc":
+                        if (proto.CurrentPosition.CurrentTurn == Turn.Sente)
+                            proto.Limit.MyInc = uint.Parse(tokens[index++]);
+                        break;
+                    
+                    case "binc":
+                        if (proto.CurrentPosition.CurrentTurn == Turn.Gote)
+                            proto.Limit.MyInc = uint.Parse(tokens[index++]);
+                        break;
+
+                    case "movetime":
+                        proto.Limit.MoveTime = ulong.Parse(tokens[index++]);
+                        break;
                 }
             }
 
             var searcher = new Searcher();
 
-            var depth = proto.Limit.FixedDepth ?? 5;
-
-            searcher.DoSearch(proto.CurrentPosition, depth);
+            searcher.DoSearch(proto.CurrentPosition, proto.Limit);
 
             GC.Collect();
         }

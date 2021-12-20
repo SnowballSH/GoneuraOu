@@ -6,11 +6,9 @@ namespace GoneuraOu.Commands
     public struct SearchLimit
     {
         public uint? FixedDepth;
-
-        public SearchLimit(uint? fixedDepth)
-        {
-            FixedDepth = fixedDepth;
-        }
+        public ulong? MyTime;
+        public uint? MyInc;
+        public ulong? MoveTime;
     }
 
     public class Protocol
@@ -42,6 +40,7 @@ namespace GoneuraOu.Commands
                     case "isready":
                         if (initAttacks)
                         {
+                            Perft.PerftInternal(CurrentPosition, 2);
                             initAttacks = false;
                         }
 
