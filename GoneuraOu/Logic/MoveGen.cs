@@ -10,6 +10,11 @@ namespace GoneuraOu.Logic
     {
         public static IEnumerable<uint> GeneratePseudoLegalMoves(this Board.Board board)
         {
+            foreach (var k in GenerateDropMoves(board))
+            {
+                yield return k;
+            }
+            
             // PAWN MOVES
             {
                 var bits = board.Bitboards[(int)(board.CurrentTurn == Turn.Sente ? Piece.SentePawn : Piece.GotePawn)];
@@ -278,11 +283,6 @@ namespace GoneuraOu.Logic
 
                     Utils.ForcePopBit(ref bits, source);
                 }
-            }
-
-            foreach (var k in GenerateDropMoves(board))
-            {
-                yield return k;
             }
         }
 

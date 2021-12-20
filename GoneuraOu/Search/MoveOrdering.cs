@@ -11,16 +11,17 @@ namespace GoneuraOu.Search
                 return 20000;
             }
 
+            var sp = move.GetPieceType();
+            
             if (move.GetCapture() == 1)
             {
-                var sp = move.GetPieceType();
                 var tp = pos.PieceLoc[move.GetTarget()]!;
-                return MvvLvaTable[(int)sp, (int)tp] + 50;
+                return MvvLvaTable[(int)sp, (int)tp] + 500;
             }
 
             if (move.GetDrop() == 1)
             {
-                return 15000;
+                return MvvLvaTable[(int)sp, 0] + 450;
             }
 
             if (searcher.KillerMoves[0, searcher.Ply] == move)

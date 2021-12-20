@@ -175,24 +175,21 @@ namespace GoneuraOu.Search
 
                     r = Math.Min(r, depth);
 
-                    if (depth >= 2)
+                    board.MakeNullMove();
+                    Ply++;
+                    var score = -Negamax(board, -beta, -beta + 1,
+                        (uint)Math.Max((int)depth - r, 0), false);
+                    board.UndoNullMove();
+                    Ply--;
+
+                    if (_maxTime.HasValue && (ulong)_timer.ElapsedMilliseconds > _maxTime.Value)
                     {
-                        board.MakeNullMove();
-                        Ply++;
-                        var score = -Negamax(board, -beta, -beta + 1,
-                            (uint)Math.Max((int)depth - r, 0), false);
-                        board.UndoNullMove();
-                        Ply--;
+                        return score;
+                    }
 
-                        if (_maxTime.HasValue && (ulong)_timer.ElapsedMilliseconds > _maxTime.Value)
-                        {
-                            return score;
-                        }
-
-                        if (score >= beta)
-                        {
-                            return score;
-                        }
+                    if (score >= beta)
+                    {
+                        return score;
                     }
                 }
             }
@@ -283,7 +280,7 @@ namespace GoneuraOu.Search
                 // fail-hard beta cutoff
                 if (score >= beta)
                 {
-                    if (move.GetCapture() == 0)
+                    if (move.GetCapture() == 0 && move.GetDrop() == 0)
                     {
                         // Killer Moves
                         KillerMoves[1, Ply] = KillerMoves[0, Ply];
@@ -297,7 +294,7 @@ namespace GoneuraOu.Search
                 // better move
                 if (score > alpha)
                 {
-                    if (move.GetCapture() == 0)
+                    if (move.GetCapture() == 0 && move.GetDrop() == 0)
                     {
                         // History moves
                         HistoryMoves[move.GetPieceType(), move.GetTarget()] += (int)depth;
