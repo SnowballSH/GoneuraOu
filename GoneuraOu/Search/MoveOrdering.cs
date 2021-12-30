@@ -6,13 +6,13 @@ namespace GoneuraOu.Search
     {
         public static int ScoreMove(this Board.Board pos, uint move, Searcher searcher)
         {
-            if (searcher.PrincipalVariationTable[0, searcher.Ply] == move)
+            if (searcher.PrincipalVariationTable[0][searcher.Ply] == move)
             {
                 return 20000;
             }
 
             var sp = move.GetPieceType();
-            
+
             if (move.GetCapture() == 1)
             {
                 var tp = pos.PieceLoc[move.GetTarget()]!;
@@ -24,12 +24,12 @@ namespace GoneuraOu.Search
                 return MvvLvaTable[(int)sp, 0] + 450;
             }
 
-            if (searcher.KillerMoves[0, searcher.Ply] == move)
+            if (searcher.KillerMoves[0][searcher.Ply] == move)
                 return 9000;
-            if (searcher.KillerMoves[1, searcher.Ply] == move)
+            if (searcher.KillerMoves[1][searcher.Ply] == move)
                 return 8000;
 
-            return searcher.HistoryMoves[move.GetPieceType(), move.GetTarget()];
+            return searcher.HistoryMoves[move.GetPieceType()][move.GetTarget()];
         }
 
         //     P   G   S   R   B   K   +P  +S  +R  +B

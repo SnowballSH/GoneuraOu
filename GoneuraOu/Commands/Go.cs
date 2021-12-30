@@ -39,12 +39,12 @@ namespace GoneuraOu.Commands
                         if (proto.CurrentPosition.CurrentTurn == Turn.Gote)
                             proto.Limit.MyTime = ulong.Parse(tokens[index++]);
                         break;
-                    
+
                     case "winc":
                         if (proto.CurrentPosition.CurrentTurn == Turn.Sente)
                             proto.Limit.MyInc = uint.Parse(tokens[index++]);
                         break;
-                    
+
                     case "binc":
                         if (proto.CurrentPosition.CurrentTurn == Turn.Gote)
                             proto.Limit.MyInc = uint.Parse(tokens[index++]);

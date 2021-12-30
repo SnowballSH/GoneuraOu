@@ -14,7 +14,7 @@ namespace GoneuraOu.Logic
             {
                 yield return k;
             }
-            
+
             // PAWN MOVES
             {
                 var bits = board.Bitboards[(int)(board.CurrentTurn == Turn.Sente ? Piece.SentePawn : Piece.GotePawn)];
@@ -291,8 +291,8 @@ namespace GoneuraOu.Logic
             // DROPS
             for (var pi = 0; pi < 10; pi += 2)
             {
-                var inPocket = board.Pocket[(int)board.CurrentTurn, pi] ||
-                               board.Pocket[(int)board.CurrentTurn, pi + 1];
+                var inPocket = board.Pocket[(int)board.CurrentTurn][pi] ||
+                               board.Pocket[(int)board.CurrentTurn][pi + 1];
 
                 if (!inPocket) continue;
 
@@ -309,14 +309,14 @@ namespace GoneuraOu.Logic
                         {
                             if ((target.SquareToBit() & Ranks.Five) != 0)
                                 continue;
-                            if (board.PawnFiles[0, target % 5])
+                            if (board.PawnFiles[0][target % 5])
                                 continue;
                         }
                         else
                         {
                             if ((target.SquareToBit() & Ranks.One) != 0)
                                 continue;
-                            if (board.PawnFiles[1, target % 5])
+                            if (board.PawnFiles[1][target % 5])
                                 continue;
                         }
                     }

@@ -28,10 +28,10 @@ namespace GoneuraOu.Board
          *  2 pawns 2 golds 2 silvers 2 rooks 2 bishops
          *  note that this is different from the 20 above
          */
-        public bool[,] Pocket = new bool[2, 10];
+        public bool[][] Pocket = Utils.CreateJaggedArray<bool[][]>(2, 20);
 
         public Turn CurrentTurn;
-        public bool[,] PawnFiles = new bool[2, 5];
+        public bool[][] PawnFiles = Utils.CreateJaggedArray<bool[][]>(2, 5);
 
         public Stack<byte> CaptureHistory = new();
 
@@ -51,8 +51,8 @@ namespace GoneuraOu.Board
         {
             Array.Clear(Bitboards);
             Array.Clear(Occupancies);
-            Array.Clear(Pocket);
-            Array.Clear(PawnFiles);
+            Pocket = Utils.CreateJaggedArray<bool[][]>(2, 20);
+            PawnFiles = Utils.CreateJaggedArray<bool[][]>(2, 5);
             Array.Clear(PieceLoc);
             CaptureHistory.Clear();
 
@@ -93,11 +93,11 @@ namespace GoneuraOu.Board
 
                         if (pt == Piece.SentePawn)
                         {
-                            PawnFiles[0, file] = true;
+                            PawnFiles[0][file] = true;
                         }
                         else if (pt == Piece.GotePawn)
                         {
-                            PawnFiles[1, file] = true;
+                            PawnFiles[1][file] = true;
                         }
 
                         Bitboards[(int)pt] |= sqbb;
@@ -113,13 +113,13 @@ namespace GoneuraOu.Board
             parsePocket:
                 if (ch is ']' or '-') break;
                 var pocketPt = ((int)ch).ToPiece(false);
-                if (!Pocket[(int)pocketPt.PieceTurn(), pocketPt.PieceType() * 2])
+                if (!Pocket[(int)pocketPt.PieceTurn()][pocketPt.PieceType() * 2])
                 {
-                    Pocket[(int)pocketPt.PieceTurn(), pocketPt.PieceType() * 2] = true;
+                    Pocket[(int)pocketPt.PieceTurn()][pocketPt.PieceType() * 2] = true;
                 }
                 else
                 {
-                    Pocket[(int)pocketPt.PieceTurn(), pocketPt.PieceType() * 2 + 1] = true;
+                    Pocket[(int)pocketPt.PieceTurn()][pocketPt.PieceType() * 2 + 1] = true;
                 }
             }
 
@@ -167,7 +167,7 @@ namespace GoneuraOu.Board
             {
                 for (var index = 0; index < 10; index++)
                 {
-                    var p = Pocket[turn, index];
+                    var p = Pocket[turn][index];
                     if (p)
                     {
                         fen += Constants.AsciiPieces[index / 2 + turn * 10];
@@ -203,21 +203,21 @@ namespace GoneuraOu.Board
                 {
                     if (CurrentTurn == Turn.Sente)
                     {
-                        PawnFiles[0, target % 5] = true;
+                        PawnFiles[0][target % 5] = true;
                     }
                     else
                     {
-                        PawnFiles[1, target % 5] = true;
+                        PawnFiles[1][target % 5] = true;
                     }
                 }
 
-                if (Pocket[(int)CurrentTurn, pt * 2])
+                if (Pocket[(int)CurrentTurn][pt * 2])
                 {
-                    Pocket[(int)CurrentTurn, pt * 2] = false;
+                    Pocket[(int)CurrentTurn][pt * 2] = false;
                 }
                 else
                 {
-                    Pocket[(int)CurrentTurn, pt * 2 + 1] = false;
+                    Pocket[(int)CurrentTurn][pt * 2 + 1] = false;
                 }
             }
             else
@@ -244,20 +244,20 @@ namespace GoneuraOu.Board
 
                     if (plt == (int)Piece.SentePawn)
                     {
-                        PawnFiles[0, target % 5] = false;
+                        PawnFiles[0][target % 5] = false;
                     }
                     else if (plt == (int)Piece.GotePawn)
                     {
-                        PawnFiles[1, target % 5] = false;
+                        PawnFiles[1][target % 5] = false;
                     }
 
-                    if (!Pocket[(int)CurrentTurn, Constants.CompressBasics[plt] * 2])
+                    if (!Pocket[(int)CurrentTurn][Constants.CompressBasics[plt] * 2])
                     {
-                        Pocket[(int)CurrentTurn, Constants.CompressBasics[plt] * 2] = true;
+                        Pocket[(int)CurrentTurn][Constants.CompressBasics[plt] * 2] = true;
                     }
                     else
                     {
-                        Pocket[(int)CurrentTurn, Constants.CompressBasics[plt] * 2 + 1] = true;
+                        Pocket[(int)CurrentTurn][Constants.CompressBasics[plt] * 2 + 1] = true;
                     }
 
                     CaptureHistory.Push((byte)plt);
@@ -271,7 +271,7 @@ namespace GoneuraOu.Board
 
             CurrentTurn = CurrentTurn.Invert();
         }
-        
+
         public void UndoMove(uint move)
         {
             CurrentTurn = CurrentTurn.Invert();
@@ -293,21 +293,21 @@ namespace GoneuraOu.Board
                 {
                     if (CurrentTurn == Turn.Sente)
                     {
-                        PawnFiles[0, target % 5] = false;
+                        PawnFiles[0][target % 5] = false;
                     }
                     else
                     {
-                        PawnFiles[1, target % 5] = false;
+                        PawnFiles[1][target % 5] = false;
                     }
                 }
 
-                if (!Pocket[(int)CurrentTurn, pt * 2])
+                if (!Pocket[(int)CurrentTurn][pt * 2])
                 {
-                    Pocket[(int)CurrentTurn, pt * 2] = true;
+                    Pocket[(int)CurrentTurn][pt * 2] = true;
                 }
                 else
                 {
-                    Pocket[(int)CurrentTurn, pt * 2 + 1] = true;
+                    Pocket[(int)CurrentTurn][pt * 2 + 1] = true;
                 }
             }
             else
@@ -334,20 +334,20 @@ namespace GoneuraOu.Board
 
                     if (plt == (int)Piece.SentePawn)
                     {
-                        PawnFiles[0, target % 5] = true;
+                        PawnFiles[0][target % 5] = true;
                     }
                     else if (plt == (int)Piece.GotePawn)
                     {
-                        PawnFiles[1, target % 5] = true;
+                        PawnFiles[1][target % 5] = true;
                     }
 
-                    if (Pocket[(int)CurrentTurn, Constants.CompressBasics[plt] * 2])
+                    if (Pocket[(int)CurrentTurn][Constants.CompressBasics[plt] * 2])
                     {
-                        Pocket[(int)CurrentTurn, Constants.CompressBasics[plt] * 2] = false;
+                        Pocket[(int)CurrentTurn][Constants.CompressBasics[plt] * 2] = false;
                     }
                     else
                     {
-                        Pocket[(int)CurrentTurn, Constants.CompressBasics[plt] * 2 + 1] = false;
+                        Pocket[(int)CurrentTurn][Constants.CompressBasics[plt] * 2 + 1] = false;
                     }
 
                     PieceLoc[target] = plt;
@@ -362,12 +362,12 @@ namespace GoneuraOu.Board
 
             Occupancies[2] = Occupancies[0] | Occupancies[1];
         }
-        
+
         public void MakeNullMove()
         {
             CurrentTurn = CurrentTurn.Invert();
         }
-        
+
         public void UndoNullMove()
         {
             CurrentTurn = CurrentTurn.Invert();
@@ -428,7 +428,7 @@ namespace GoneuraOu.Board
                 Console.Write($"{(Turn)turn} Pocket:");
                 for (var pi = 0; pi < 10; pi++)
                 {
-                    if (!Pocket[turn, pi]) continue;
+                    if (!Pocket[turn][pi]) continue;
 
                     Console.Write(' ');
                     Console.Write(Constants.AsciiPieces[10 * turn + pi / 2]);

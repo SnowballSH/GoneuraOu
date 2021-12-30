@@ -14,14 +14,14 @@ namespace GoneuraOu.Search
         public uint Ply;
 
         // id, ply
-        public uint[,] KillerMoves;
+        public uint[][] KillerMoves;
 
         // pt, square
-        public int[,] HistoryMoves;
+        public int[][] HistoryMoves;
 
         // pv
         public uint[] PrincipalVariationLengths;
-        public uint[,] PrincipalVariationTable;
+        public uint[][] PrincipalVariationTable;
 
         private Stopwatch _timer;
         private ulong? _maxTime;
@@ -29,20 +29,20 @@ namespace GoneuraOu.Search
 
         public Searcher()
         {
-            KillerMoves = new uint[2, MaxPly];
-            HistoryMoves = new int[20, 25];
+            KillerMoves = Utils.CreateJaggedArray<uint[][]>(2, (int)MaxPly);
+            HistoryMoves = Utils.CreateJaggedArray<int[][]>(20, 25);
             PrincipalVariationLengths = new uint[MaxPly];
-            PrincipalVariationTable = new uint[MaxPly, MaxPly];
+            PrincipalVariationTable = Utils.CreateJaggedArray<uint[][]>((int)MaxPly, (int)MaxPly);
             _timer = new Stopwatch();
             _maxTime = null;
         }
 
         public void Reset()
         {
-            KillerMoves = new uint[2, MaxPly];
-            HistoryMoves = new int[20, 25];
+            KillerMoves = Utils.CreateJaggedArray<uint[][]>(2, (int)MaxPly);
+            HistoryMoves = Utils.CreateJaggedArray<int[][]>(20, 25);
             PrincipalVariationLengths = new uint[MaxPly];
-            PrincipalVariationTable = new uint[MaxPly, MaxPly];
+            PrincipalVariationTable = Utils.CreateJaggedArray<uint[][]>((int)MaxPly, (int)MaxPly);
             _timer = new Stopwatch();
             _maxTime = null;
         }
@@ -56,7 +56,7 @@ namespace GoneuraOu.Search
 
             IterativeDeepening(board, limit.FixedDepth ?? MaxPly);
 
-            Console.WriteLine($"bestmove {PrincipalVariationTable[0, 0].ToUci()}");
+            Console.WriteLine($"bestmove {PrincipalVariationTable[0][0].ToUci()}");
         }
 
         /// <summary>
@@ -94,7 +94,7 @@ namespace GoneuraOu.Search
                 for (var c = 0; c < PrincipalVariationLengths[0]; c++)
                 {
                     Console.Write(' ');
-                    Console.Write(PrincipalVariationTable[0, c].ToUci());
+                    Console.Write(PrincipalVariationTable[0][c].ToUci());
                 }
 
                 Console.WriteLine();
@@ -123,7 +123,7 @@ namespace GoneuraOu.Search
             for (var c = 0; c < PrincipalVariationLengths[0]; c++)
             {
                 Console.Write(' ');
-                Console.Write(PrincipalVariationTable[0, c].ToUci());
+                Console.Write(PrincipalVariationTable[0][c].ToUci());
             }
 
             Console.WriteLine();
@@ -132,7 +132,7 @@ namespace GoneuraOu.Search
         public int Negamax(Board.Board board, int alpha, int beta, uint depth, bool doNull = true)
         {
             var foundPv = false;
-            
+
             PrincipalVariationLengths[Ply] = Ply;
 
             if (depth == 0)
@@ -223,7 +223,7 @@ namespace GoneuraOu.Search
                     if (legals >= FullDepthLimit && depth >= ReductionLimit
                                                  && move.GetCapture() == 0
                                                  && move.GetDrop() == 0
-                                                 && PrincipalVariationTable[0, Ply] != move
+                                                 && PrincipalVariationTable[0][Ply] != move
                                                  && !incheck
                                                  && board.IsMyKingAttacked(board.CurrentTurn.Invert()))
                     {
@@ -283,8 +283,8 @@ namespace GoneuraOu.Search
                     if (move.GetCapture() == 0 && move.GetDrop() == 0)
                     {
                         // Killer Moves
-                        KillerMoves[1, Ply] = KillerMoves[0, Ply];
-                        KillerMoves[0, Ply] = move;
+                        KillerMoves[1][Ply] = KillerMoves[0][Ply];
+                        KillerMoves[0][Ply] = move;
                     }
 
                     // fails high
@@ -297,7 +297,7 @@ namespace GoneuraOu.Search
                     if (move.GetCapture() == 0 && move.GetDrop() == 0)
                     {
                         // History moves
-                        HistoryMoves[move.GetPieceType(), move.GetTarget()] += (int)depth;
+                        HistoryMoves[move.GetPieceType()][move.GetTarget()] += (int)depth;
                     }
 
                     // PV
@@ -306,10 +306,10 @@ namespace GoneuraOu.Search
                     // PVS Enable
                     foundPv = true;
 
-                    PrincipalVariationTable[Ply, Ply] = move;
+                    PrincipalVariationTable[Ply][Ply] = move;
                     for (var next = Ply + 1; next < PrincipalVariationLengths[Ply + 1]; next++)
                     {
-                        PrincipalVariationTable[Ply, next] = PrincipalVariationTable[Ply + 1, next];
+                        PrincipalVariationTable[Ply][next] = PrincipalVariationTable[Ply + 1][next];
                     }
 
                     PrincipalVariationLengths[Ply] = PrincipalVariationLengths[Ply + 1];

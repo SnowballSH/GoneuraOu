@@ -3,7 +3,7 @@
     public static class NeuralNetAdapt
     {
         public const uint NnSize = 25 * 20 + 2 * 20;
-        
+
         public static bool[] ToNeuralNetFormat(this Board board)
         {
             var activated = new bool[NnSize];
@@ -17,7 +17,7 @@
 
             for (var i = 0; i < 20; i++)
             {
-                activated[25 * 20 + i] = board.Pocket[i / 10, i % 10];
+                activated[25 * 20 + i] = board.Pocket[i / 10][i % 10];
             }
 
             return activated;
