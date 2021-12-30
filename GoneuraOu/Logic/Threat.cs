@@ -8,11 +8,11 @@ namespace GoneuraOu.Logic
         {
             var tt = turn * 10;
             return
-                (Attacks.PawnAttacks[turn ^ 1, square] & board.Bitboards[(int)Piece.SentePawn + tt]) != 0
-                || (Attacks.GoldAttacks[turn ^ 1, square] &
+                (Attacks.PawnAttacks[turn ^ 1][square] & board.Bitboards[(int)Piece.SentePawn + tt]) != 0
+                || (Attacks.GoldAttacks[turn ^ 1][square] &
                     (board.Bitboards[(int)Piece.SenteGold + tt] | board.Bitboards[(int)Piece.SenteTokin + tt] |
                      board.Bitboards[(int)Piece.SentePromotedSilver + tt])) != 0
-                || (Attacks.SilverAttacks[turn ^ 1, square] & board.Bitboards[(int)Piece.SenteSilver + tt]) != 0
+                || (Attacks.SilverAttacks[turn ^ 1][square] & board.Bitboards[(int)Piece.SenteSilver + tt]) != 0
                 || (Attacks.GetRookAttacks(square, board.Occupancies[2]) &
                     (board.Bitboards[(int)Piece.SenteRook + tt] | board.Bitboards[(int)Piece.SenteDragon + tt])) != 0
                 || (Attacks.GetBishopAttacks(square, board.Occupancies[2]) &
@@ -27,11 +27,11 @@ namespace GoneuraOu.Logic
         {
             var tt = turn * 10;
             return
-                (Attacks.PawnAttacks[turn ^ 1, square] & board.Bitboards[(int)Piece.SentePawn + tt])
-                | (Attacks.GoldAttacks[turn ^ 1, square] &
+                (Attacks.PawnAttacks[turn ^ 1][square] & board.Bitboards[(int)Piece.SentePawn + tt])
+                | (Attacks.GoldAttacks[turn ^ 1][square] &
                    (board.Bitboards[(int)Piece.SenteGold + tt] | board.Bitboards[(int)Piece.SenteTokin + tt] |
                     board.Bitboards[(int)Piece.SentePromotedSilver + tt]))
-                | (Attacks.SilverAttacks[turn ^ 1, square] & board.Bitboards[(int)Piece.SenteSilver + tt])
+                | (Attacks.SilverAttacks[turn ^ 1][square] & board.Bitboards[(int)Piece.SenteSilver + tt])
                 | (Attacks.GetRookAttacks(square, board.Occupancies[2]) &
                    (board.Bitboards[(int)Piece.SenteRook + tt] | board.Bitboards[(int)Piece.SenteDragon + tt]))
                 | (Attacks.GetBishopAttacks(square, board.Occupancies[2]) &

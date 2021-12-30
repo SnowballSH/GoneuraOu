@@ -10,7 +10,7 @@ namespace GoneuraOu.Logic
         /// --$--
         /// --P--
         /// -----
-        public static readonly uint[,] PawnAttacks;
+        public static readonly uint[][] PawnAttacks;
 
         /// -$$$-
         /// -$K$-
@@ -20,12 +20,12 @@ namespace GoneuraOu.Logic
         /// -$$$-
         /// -$G$-
         /// --$--
-        public static readonly uint[,] GoldAttacks;
+        public static readonly uint[][] GoldAttacks;
 
         /// -$$$-
         /// --S--
         /// -$-$-
-        public static readonly uint[,] SilverAttacks;
+        public static readonly uint[][] SilverAttacks;
 
         private static uint GeneratePawnAttacks(int square, Turn turn)
         {
@@ -270,10 +270,10 @@ namespace GoneuraOu.Logic
 
         static Attacks()
         {
-            PawnAttacks = new uint[2, Constants.BoardArea];
+            PawnAttacks = Utils.CreateJaggedArray<uint[][]>(2, Constants.BoardArea);
             KingAttacks = new uint[Constants.BoardArea];
-            GoldAttacks = new uint[2, Constants.BoardArea];
-            SilverAttacks = new uint[2, Constants.BoardArea];
+            GoldAttacks = Utils.CreateJaggedArray<uint[][]>(2, Constants.BoardArea);
+            SilverAttacks = Utils.CreateJaggedArray<uint[][]>(2, Constants.BoardArea);
 
             for (var square = 0;
                 square < Constants.BoardArea;
@@ -281,9 +281,9 @@ namespace GoneuraOu.Logic
             {
                 for (var turn = Turn.Sente; turn <= Turn.Gote; turn++)
                 {
-                    PawnAttacks[(int)turn, square] = GeneratePawnAttacks(square, turn);
-                    GoldAttacks[(int)turn, square] = GenerateGoldAttacks(square, turn);
-                    SilverAttacks[(int)turn, square] = GenerateSilverAttacks(square, turn);
+                    PawnAttacks[(int)turn][square] = GeneratePawnAttacks(square, turn);
+                    GoldAttacks[(int)turn][square] = GenerateGoldAttacks(square, turn);
+                    SilverAttacks[(int)turn][square] = GenerateSilverAttacks(square, turn);
                 }
 
                 KingAttacks[square] = GenerateKingAttacks(square);

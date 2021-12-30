@@ -21,7 +21,7 @@ namespace GoneuraOu.Logic
                 while (bits != 0)
                 {
                     var source = bits.BitScan();
-                    var attacks = Attacks.PawnAttacks[(int)board.CurrentTurn, source] &
+                    var attacks = Attacks.PawnAttacks[(int)board.CurrentTurn][source] &
                                   ~board.Occupancies[(int)board.CurrentTurn];
                     while (attacks != 0)
                     {
@@ -60,7 +60,7 @@ namespace GoneuraOu.Logic
                 while (bits != 0)
                 {
                     var source = bits.BitScan();
-                    var attacks = Attacks.GoldAttacks[(int)board.CurrentTurn, source] &
+                    var attacks = Attacks.GoldAttacks[(int)board.CurrentTurn][source] &
                                   ~board.Occupancies[(int)board.CurrentTurn];
                     while (attacks != 0)
                     {
@@ -87,7 +87,7 @@ namespace GoneuraOu.Logic
                 while (bits != 0)
                 {
                     var source = bits.BitScan();
-                    var attacks = Attacks.GoldAttacks[(int)board.CurrentTurn, source] &
+                    var attacks = Attacks.GoldAttacks[(int)board.CurrentTurn][source] &
                                   ~board.Occupancies[(int)board.CurrentTurn];
                     var pt = board
                         .Bitboards[(int)(board.CurrentTurn == Turn.Sente ? Piece.SenteTokin : Piece.GoteTokin)]
@@ -117,7 +117,7 @@ namespace GoneuraOu.Logic
                 while (bits != 0)
                 {
                     var source = bits.BitScan();
-                    var attacks = Attacks.SilverAttacks[(int)board.CurrentTurn, source] &
+                    var attacks = Attacks.SilverAttacks[(int)board.CurrentTurn][source] &
                                   ~board.Occupancies[(int)board.CurrentTurn];
                     while (attacks != 0)
                     {
@@ -336,7 +336,7 @@ namespace GoneuraOu.Logic
                 while (bits != 0)
                 {
                     var source = bits.BitScan();
-                    var attacks = Attacks.PawnAttacks[(int)board.CurrentTurn, source] &
+                    var attacks = Attacks.PawnAttacks[(int)board.CurrentTurn][source] &
                                   ~board.Occupancies[(int)board.CurrentTurn];
                     while (attacks != 0)
                     {
@@ -378,7 +378,7 @@ namespace GoneuraOu.Logic
                 while (bits != 0)
                 {
                     var source = bits.BitScan();
-                    var attacks = Attacks.GoldAttacks[(int)board.CurrentTurn, source] &
+                    var attacks = Attacks.GoldAttacks[(int)board.CurrentTurn][source] &
                                   ~board.Occupancies[(int)board.CurrentTurn];
                     while (attacks != 0)
                     {
@@ -409,7 +409,7 @@ namespace GoneuraOu.Logic
                 while (bits != 0)
                 {
                     var source = bits.BitScan();
-                    var attacks = Attacks.GoldAttacks[(int)board.CurrentTurn, source] &
+                    var attacks = Attacks.GoldAttacks[(int)board.CurrentTurn][source] &
                                   ~board.Occupancies[(int)board.CurrentTurn];
                     var pt = board
                         .Bitboards[(int)(board.CurrentTurn == Turn.Sente ? Piece.SenteTokin : Piece.GoteTokin)]
@@ -443,7 +443,7 @@ namespace GoneuraOu.Logic
                 while (bits != 0)
                 {
                     var source = bits.BitScan();
-                    var attacks = Attacks.SilverAttacks[(int)board.CurrentTurn, source] &
+                    var attacks = Attacks.SilverAttacks[(int)board.CurrentTurn][source] &
                                   ~board.Occupancies[(int)board.CurrentTurn];
                     while (attacks != 0)
                     {
