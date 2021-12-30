@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Diagnostics;
-using System.Linq;
 using GoneuraOu.Common;
 using GoneuraOu.Logic;
 

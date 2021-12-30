@@ -326,7 +326,7 @@ namespace GoneuraOu.Search
 
         public int Quiescence(Board.Board board, int alpha, int beta)
         {
-            Nodes++;
+            // Nodes++;
 
             var evaluation = board.Evaluate();
 
