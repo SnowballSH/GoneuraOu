@@ -4,7 +4,7 @@ UCI Minishogi (5x5 shogi) Engine
 
 Current Strength: Around Fairy-Stockfish level 6-7
 
-Slowly improves position to +4 and defeats Fairy-Stockfish level 5 in 15 moves: (blitz 3+2)
+Slowly improves position to +4 and defeats Fairy-Stockfish level 5 in 16 moves: (blitz 3+2)
 
 ```
 [White "Fairy-Stockfish Level 5"]
