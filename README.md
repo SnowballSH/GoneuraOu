@@ -2,9 +2,26 @@
 
 UCI Minishogi (5x5 shogi) Engine
 
-Current Strength: Around Fairy-Stockfish level 5-6
+Current Strength: Around Fairy-Stockfish level 6-7
 
-Defeats Fairy-Stockfish level 4 in 11 moves:
+Slowly improves position to +4 and defeats Fairy-Stockfish level 5 in 15 moves: (blitz 3+2)
+
+```
+[White "Fairy-Stockfish Level 5"]
+[Black "GoneuraOu"]
+[Result "0-1"]
+[TimeControl "30/180+2"]
+[Variant "minishogi"]
+
+1. Sd2 Sd4 2. Bc2 Bc4 3. Rc1 Rb5
+4. Rd1 Bb3 5. Sc1 Bxc2 6. Gxc2 B@a4
+7. B@b2 Rxb2 8. Kxb2 B@c3 9. Kb1 Bxc2
+10. Kxc2 Ba1+ 11. B@b4 +Bxa2 12. R@a3 +Bxa3
+13. Rxd4 G@b3 14. Kd2 +Bxc1 15. Ke1 S@e2
+16. Kxe2 R@e3 { Checkmate } 0-1
+```
+
+Defeats Fairy-Stockfish level 4 in 11 moves: (blitz 3+2)
 
 ```
 [White "Fairy-Stockfish Level 4"]
@@ -19,7 +36,7 @@ Defeats Fairy-Stockfish level 4 in 11 moves:
 10. Gxb1 Bxb1+ 11. Kxb1 G@b2 { Checkmate } 0-1
 ```
 
-Defeats Fairy-Stockfish level 3 in 24 moves:
+Defeats Fairy-Stockfish level 3 in 24 moves: (bullet 0.5+2)
 
 ```
 [White "GoneuraOu"]
