@@ -5,10 +5,12 @@ namespace GoneuraOu.Search
     public partial class Searcher
     {
         public const uint MaxPly = 128;
-        public const uint FullDepthLimit = 4;
-        public const uint ReductionLimit = 3;
+        public const uint FullDepthLimit = 3;
+        public const uint ReductionLimit = 4;
+        public const uint MoreReductionDepthLimit = 8;
 
         public const int Infinity = 7654321;
+        public const int Checkmate = 987654;
 
         public static ulong CalcTime(SearchLimit limit)
         {
@@ -16,7 +18,7 @@ namespace GoneuraOu.Search
                 ? limit.MoveTime.Value - 40
                 : limit.MyTime.HasValue
                     ? limit.MyTime.Value / 20 + (limit.MyInc ?? 0) - 40
-                    : 500
+                    : ulong.MaxValue - 1000
                 ;
         }
     }

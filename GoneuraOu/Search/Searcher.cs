@@ -73,6 +73,8 @@ namespace GoneuraOu.Search
 
             uint depthReached = 0;
             var score = 0;
+            bool isMate;
+            string scoreText;
 
             for (var depth = 1u; depth <= maxDepth; depth++)
             {
@@ -85,8 +87,13 @@ namespace GoneuraOu.Search
 
                 score = newScore;
 
+                isMate = Math.Abs(score - Checkmate) < 100;
+
+                scoreText =
+                    isMate ? $"mate {(score > 0 ? 1 : -1) * (Checkmate - Math.Abs(score))}" : score.ToString();
+
                 Console.Write(
-                    $"info depth {depth} score cp {score} nodes {Nodes} time {_timer.ElapsedMilliseconds} " +
+                    $"info depth {depth} score cp {scoreText} nodes {Nodes} time {_timer.ElapsedMilliseconds} " +
                     $"nps {(_timer.ElapsedMilliseconds == 0 ? 0 : Nodes * 1000 / (ulong)_timer.ElapsedMilliseconds)} " +
                     "pv"
                 );
@@ -99,6 +106,13 @@ namespace GoneuraOu.Search
 
                 Console.WriteLine();
 
+                depthReached = depth;
+
+                if (isMate)
+                {
+                    break;
+                }
+
                 if (score <= alpha || score >= beta)
                 {
                     alpha = -Infinity;
@@ -108,14 +122,17 @@ namespace GoneuraOu.Search
 
                 alpha = score - window;
                 beta = score + window;
-
-                depthReached = depth;
             }
 
             _timer.Stop();
+            
+            isMate = Math.Abs(score - Checkmate) < 100;
+
+            scoreText =
+                isMate ? $"mate {(score > 0 ? 1 : -1) * (Checkmate - Math.Abs(score))}" : score.ToString();
 
             Console.Write(
-                $"info depth {depthReached} score cp {score} nodes {Nodes} time {_timer.ElapsedMilliseconds} " +
+                $"info depth {depthReached} score cp {scoreText} nodes {Nodes} time {_timer.ElapsedMilliseconds} " +
                 $"nps {(_timer.ElapsedMilliseconds == 0 ? 0 : Nodes * 1000 / (ulong)_timer.ElapsedMilliseconds)} " +
                 "pv"
             );
@@ -225,9 +242,10 @@ namespace GoneuraOu.Search
                                                  && move.GetDrop() == 0
                                                  && PrincipalVariationTable[0][Ply] != move
                                                  && !incheck
-                                                 && board.IsMyKingAttacked(board.CurrentTurn.Invert()))
+                                                 && !board.IsMyKingAttacked(board.CurrentTurn.Invert()))
                     {
-                        score = -Negamax(board, -alpha - 1, -alpha, depth - 2);
+                        var dp = legals >= MoreReductionDepthLimit ? depth / 3 : depth - 2;
+                        score = -Negamax(board, -alpha - 1, -alpha, dp);
                         if (_maxTime.HasValue && (ulong)_timer.ElapsedMilliseconds > _maxTime.Value)
                         {
                             board.UndoMove(move);
@@ -314,11 +332,16 @@ namespace GoneuraOu.Search
 
                     PrincipalVariationLengths[Ply] = PrincipalVariationLengths[Ply + 1];
                 }
+
+                if (Math.Abs(score - Checkmate) < 100)
+                {
+                    return score;
+                }
             }
 
             if (legals == 0)
             {
-                return (int)Ply - 987654;
+                return (int)Ply - Checkmate;
             }
 
             return alpha;

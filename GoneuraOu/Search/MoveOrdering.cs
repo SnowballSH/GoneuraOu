@@ -16,12 +16,12 @@ namespace GoneuraOu.Search
             if (move.GetCapture() == 1)
             {
                 var tp = pos.PieceLoc[move.GetTarget()]!;
-                return MvvLvaTable[(int)sp][(int)tp] + 500;
+                return MvvLvaTable[(int)sp][(int)tp] + 550;
             }
 
             if (move.GetDrop() == 1)
             {
-                return MvvLvaTable[(int)sp][0] + 450;
+                return MvvLvaTable[(int)sp][0] + 500;
             }
 
             if (searcher.KillerMoves[0][searcher.Ply] == move)
