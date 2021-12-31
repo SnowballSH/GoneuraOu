@@ -244,7 +244,7 @@ namespace GoneuraOu.Search
                                                  && !incheck
                                                  && !board.IsMyKingAttacked(board.CurrentTurn.Invert()))
                     {
-                        var dp = legals >= MoreReductionDepthLimit ? depth / 3 : depth - 2;
+                        var dp = legals >= MoreReductionDepthLimit ? depth / 2 : depth - 2;
                         score = -Negamax(board, -alpha - 1, -alpha, dp);
                         if (_maxTime.HasValue && (ulong)_timer.ElapsedMilliseconds > _maxTime.Value)
                         {

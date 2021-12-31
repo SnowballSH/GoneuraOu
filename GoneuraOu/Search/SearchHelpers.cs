@@ -5,9 +5,9 @@ namespace GoneuraOu.Search
     public partial class Searcher
     {
         public const uint MaxPly = 128;
-        public const uint FullDepthLimit = 3;
+        public const uint FullDepthLimit = 4;
         public const uint ReductionLimit = 4;
-        public const uint MoreReductionDepthLimit = 8;
+        public const uint MoreReductionDepthLimit = 7;
 
         public const int Infinity = 7654321;
         public const int Checkmate = 987654;
