@@ -15,6 +15,7 @@ namespace GoneuraOu.Search
     {
         public ulong Nodes;
         public uint Ply;
+        public uint SelDepth;
 
         // id, ply
         public uint[][] KillerMoves;
@@ -38,6 +39,7 @@ namespace GoneuraOu.Search
             PrincipalVariationTable = Utils.CreateJaggedArray<uint[][]>((int)MaxPly, (int)MaxPly);
             _timer = new Stopwatch();
             _maxTime = null;
+            SelDepth = 0;
         }
 
         public void Reset()
@@ -48,6 +50,7 @@ namespace GoneuraOu.Search
             PrincipalVariationTable = Utils.CreateJaggedArray<uint[][]>((int)MaxPly, (int)MaxPly);
             _timer = new Stopwatch();
             _maxTime = null;
+            SelDepth = 0;
         }
 
         public void DoSearch(Board.Board board, SearchLimit limit)
@@ -83,6 +86,8 @@ namespace GoneuraOu.Search
 
             for (var depth = 1u; depth <= maxDepth; depth++)
             {
+                SelDepth = 0;
+
                 var newScore = Negamax(board, alpha, beta, depth);
 
                 if (_maxTime.HasValue && (ulong)_timer.ElapsedMilliseconds > _maxTime.Value)
@@ -98,7 +103,7 @@ namespace GoneuraOu.Search
                     isMate ? $"mate {(score > 0 ? 1 : -1) * (Checkmate - Math.Abs(score))}" : $"cp {score}";
 
                 Console.Write(
-                    $"info depth {depth} score {scoreText} nodes {Nodes} time {_timer.ElapsedMilliseconds} " +
+                    $"info depth {depth} seldepth {SelDepth} score {scoreText} nodes {Nodes} time {_timer.ElapsedMilliseconds} " +
                     $"nps {(_timer.ElapsedMilliseconds == 0 ? 0 : Nodes * 1000 / (ulong)_timer.ElapsedMilliseconds)} " +
                     "pv"
                 );
@@ -137,7 +142,7 @@ namespace GoneuraOu.Search
                 isMate ? $"mate {(score > 0 ? 1 : -1) * (Checkmate - Math.Abs(score))}" : $"cp {score}";
 
             Console.Write(
-                $"info depth {depthReached} score {scoreText} nodes {Nodes} time {_timer.ElapsedMilliseconds} " +
+                $"info depth {depthReached} seldepth {SelDepth} score {scoreText} nodes {Nodes} time {_timer.ElapsedMilliseconds} " +
                 $"nps {(_timer.ElapsedMilliseconds == 0 ? 0 : Nodes * 1000 / (ulong)_timer.ElapsedMilliseconds)} " +
                 "pv"
             );
@@ -420,6 +425,7 @@ namespace GoneuraOu.Search
         public int Quiescence(Board.Board board, int alpha, int beta)
         {
             // Nodes++;
+            SelDepth = Math.Max(SelDepth, Ply);
 
             var evaluation = board.Evaluate();
 
