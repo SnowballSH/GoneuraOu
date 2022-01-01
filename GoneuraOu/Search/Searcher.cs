@@ -97,7 +97,7 @@ namespace GoneuraOu.Search
 
                 score = newScore;
 
-                isMate = Math.Abs(score - Checkmate) < 100;
+                isMate = Math.Abs(Math.Abs(score) - Checkmate) < 100;
 
                 scoreText =
                     isMate ? $"mate {(score > 0 ? 1 : -1) * (Checkmate - Math.Abs(score))}" : $"cp {score}";
@@ -136,7 +136,7 @@ namespace GoneuraOu.Search
 
             _timer.Stop();
 
-            isMate = Math.Abs(score - Checkmate) < 100;
+            isMate = Math.Abs(Math.Abs(score) - Checkmate) < 100;
 
             scoreText =
                 isMate ? $"mate {(score > 0 ? 1 : -1) * (Checkmate - Math.Abs(score))}" : $"cp {score}";
@@ -220,9 +220,15 @@ namespace GoneuraOu.Search
                 var eval = board.Evaluate();
 
                 // Razoring
-                if (depth < 2 && eval + 400 <= alpha)
+                if (depth == 2 && eval + 460 <= alpha)
                 {
                     return Quiescence(board, alpha, beta);
+                }
+
+                // Deep Razoring
+                if (depth == 4 && eval + 630 <= alpha)
+                {
+                    return Negamax(board, alpha, beta, 1);
                 }
 
                 if (doNull)
@@ -290,6 +296,7 @@ namespace GoneuraOu.Search
                 // PVS Search
                 if (foundPv)
                 {
+                    // LMR
                     if (legals >= FullDepthLimit && depth >= ReductionLimit
                                                  && move.GetCapture() == 0
                                                  && move.GetDrop() == 0
@@ -297,7 +304,11 @@ namespace GoneuraOu.Search
                                                  && !incheck
                                                  && !board.IsMyKingAttacked(board.CurrentTurn.Invert()))
                     {
-                        var dp = legals >= MoreReductionDepthLimit ? depth / 2 : depth - 2;
+                        var dp = legals >= FullDepthLimit + 1
+                            ? legals >= MoreReductionDepthLimit
+                                ? depth / 2
+                                : depth * 3 / 4
+                            : depth - 2;
                         score = -Negamax(board, -alpha - 1, -alpha, dp);
                         if (_maxTime.HasValue && (ulong)_timer.ElapsedMilliseconds > _maxTime.Value)
                         {
@@ -390,7 +401,7 @@ namespace GoneuraOu.Search
                     PrincipalVariationLengths[Ply] = PrincipalVariationLengths[Ply + 1];
                 }
 
-                if (Math.Abs(score - Checkmate) < 100)
+                if (Math.Abs(Math.Abs(score) - Checkmate) < 100)
                 {
                     return score;
                 }

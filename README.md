@@ -2,9 +2,56 @@
 
 Decent UCI Minishogi (5x5 shogi) Engine
 
-Current Strength: Around 2000 ELO
+Current Strength: Around **1900 ELO**
 
-Finds forced checkmate in 14 (halfmoves) against Fairy-Stockfish 1800 ELO:
+## Technology
+
+Technologies used to build this engine: (crossed-out means in the future)
+
+- Move Generation
+    - Bitboards
+    - Pre-generated pattern tables
+    - Modified Kindergarten Bitboards for Slider attacks
+    - Incremental Pawn Locations
+    - Pawn drop mate detection
+
+- Search
+    - Negamax Search
+    - Quiescence Search
+    - Iterative Deepening
+    - PVS Search
+    - Null-Move Pruning
+    - Check Extension
+    - Razoring
+    - Deep Razoring
+    - Late-Move-Reduction (LMR)
+    - Transposition Table (a little buggy though...)
+    - ~~SEE (Static Exchange Evaluation)~~
+    - ~~MTD(f)~~
+    - ~~Futility Pruning~~
+
+- Move Ordering
+    - MVV-LVA
+    - History Moves
+    - Killer Moves
+    - Second Killer Moves
+    - ~~Checks~~
+
+- Evaluation
+    - Piece Values
+    - Piece-square Table
+    - King-Distance evaluation (inspired from Computer Shogi papers)
+    - King Safety
+    - Slider activity
+    - King activity
+    - ~~Pins~~
+    - ~~NNUE for accurate evaluation~~
+
+## Games
+
+Games during development progress:
+
+Finds forced checkmate in 14 (halfmoves) against Fairy-Stockfish 1800 ELO: (blitz 3+2)
 
 ```
 [White "GoneuraOu"]

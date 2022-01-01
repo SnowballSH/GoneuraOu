@@ -73,7 +73,7 @@ namespace GoneuraOu.TranspositionTable
 
         public static int RegularToTtScore(int score, int ply)
         {
-            if (Math.Abs(score - Search.Searcher.Checkmate) < 100)
+            if (Math.Abs(Math.Abs(score) - Search.Searcher.Checkmate) < 100)
             {
                 if (score > 0)
                 {
@@ -88,7 +88,7 @@ namespace GoneuraOu.TranspositionTable
 
         public static int TtToRegularScore(int score, int ply)
         {
-            if (Math.Abs(score - Search.Searcher.Checkmate) < 100)
+            if (Math.Abs(Math.Abs(score) - Search.Searcher.Checkmate) < 100)
             {
                 if (score > 0)
                 {
