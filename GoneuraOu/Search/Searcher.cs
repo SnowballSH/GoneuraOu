@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
+using GoneuraOu.Board;
 using GoneuraOu.Commands;
 using GoneuraOu.Common;
 using GoneuraOu.Evaluation;
 using GoneuraOu.Logic;
+using GoneuraOu.TranspositionTable;
 
 namespace GoneuraOu.Search
 {
@@ -54,6 +57,8 @@ namespace GoneuraOu.Search
             _maxTime = CalcTime(limit);
             _maxTime = _maxTime == 0 ? null : _maxTime;
 
+            TranspositionTable.TranspositionTable.Clear();
+
             IterativeDeepening(board, limit.FixedDepth ?? MaxPly);
 
             Console.WriteLine($"bestmove {PrincipalVariationTable[0][0].ToUci()}");
@@ -69,7 +74,7 @@ namespace GoneuraOu.Search
             var alpha = -Infinity;
             var beta = Infinity;
 
-            const int window = 50;
+            const int window = 40;
 
             uint depthReached = 0;
             var score = 0;
@@ -90,10 +95,10 @@ namespace GoneuraOu.Search
                 isMate = Math.Abs(score - Checkmate) < 100;
 
                 scoreText =
-                    isMate ? $"mate {(score > 0 ? 1 : -1) * (Checkmate - Math.Abs(score))}" : score.ToString();
+                    isMate ? $"mate {(score > 0 ? 1 : -1) * (Checkmate - Math.Abs(score))}" : $"cp {score}";
 
                 Console.Write(
-                    $"info depth {depth} score cp {scoreText} nodes {Nodes} time {_timer.ElapsedMilliseconds} " +
+                    $"info depth {depth} score {scoreText} nodes {Nodes} time {_timer.ElapsedMilliseconds} " +
                     $"nps {(_timer.ElapsedMilliseconds == 0 ? 0 : Nodes * 1000 / (ulong)_timer.ElapsedMilliseconds)} " +
                     "pv"
                 );
@@ -125,14 +130,14 @@ namespace GoneuraOu.Search
             }
 
             _timer.Stop();
-            
+
             isMate = Math.Abs(score - Checkmate) < 100;
 
             scoreText =
-                isMate ? $"mate {(score > 0 ? 1 : -1) * (Checkmate - Math.Abs(score))}" : score.ToString();
+                isMate ? $"mate {(score > 0 ? 1 : -1) * (Checkmate - Math.Abs(score))}" : $"cp {score}";
 
             Console.Write(
-                $"info depth {depthReached} score cp {scoreText} nodes {Nodes} time {_timer.ElapsedMilliseconds} " +
+                $"info depth {depthReached} score {scoreText} nodes {Nodes} time {_timer.ElapsedMilliseconds} " +
                 $"nps {(_timer.ElapsedMilliseconds == 0 ? 0 : Nodes * 1000 / (ulong)_timer.ElapsedMilliseconds)} " +
                 "pv"
             );
@@ -146,17 +151,16 @@ namespace GoneuraOu.Search
             Console.WriteLine();
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
         public int Negamax(Board.Board board, int alpha, int beta, uint depth, bool doNull = true)
         {
+#if DEBUG
+            var oHash = board.Hash;
+#endif
             var foundPv = false;
+            var originalAlpha = alpha;
 
             PrincipalVariationLengths[Ply] = Ply;
-
-            if (depth == 0)
-            {
-                // Search for captures
-                return Quiescence(board, alpha, beta);
-            }
 
             if (Ply > MaxPly - 1)
             {
@@ -165,6 +169,40 @@ namespace GoneuraOu.Search
 
             Nodes++;
 
+            var entry = TranspositionTable.TranspositionTable.Get(board.Hash);
+
+            if (entry.Flags != TranspositionFlag.Invalid && entry.Key == board.Hash)
+            {
+                if (entry.Depth >= depth)
+                {
+                    if (entry.Flags == TranspositionFlag.Exact)
+                    {
+                        return TranspositionTable.TranspositionTable.TtToRegularScore(entry.Score, (int)Ply);
+                    }
+
+                    if (entry.Flags == TranspositionFlag.Beta)
+                    {
+                        alpha = Math.Max(alpha, entry.Score);
+                    }
+
+                    else if (entry.Flags == TranspositionFlag.Alpha)
+                    {
+                        beta = Math.Min(beta, entry.Score);
+                    }
+
+                    if (alpha >= beta)
+                    {
+                        return TranspositionTable.TranspositionTable.TtToRegularScore(entry.Score, (int)Ply);
+                    }
+                }
+            }
+
+            if (depth == 0)
+            {
+                // Search for captures
+                return Quiescence(board, alpha, beta);
+            }
+
             var incheck = board.IsMyKingAttacked(board.CurrentTurn);
 
             // Check extension
@@ -172,13 +210,12 @@ namespace GoneuraOu.Search
             {
                 depth++;
             }
-
-            if (!incheck)
+            else
             {
                 var eval = board.Evaluate();
 
                 // Razoring
-                if (depth < 2 && eval + 350 <= alpha)
+                if (depth < 2 && eval + 400 <= alpha)
                 {
                     return Quiescence(board, alpha, beta);
                 }
@@ -223,6 +260,17 @@ namespace GoneuraOu.Search
                 board.MakeMoveUnchecked(move);
                 // Illegal move?
                 if (board.IsMyKingAttacked(board.CurrentTurn.Invert()))
+                {
+                    board.UndoMove(move);
+                    continue;
+                }
+
+                // Pawn drop mate?
+                if (move.GetDrop() == 1
+                    && (
+                        move.GetPieceType() == (uint)Piece.SentePawn ||
+                        move.GetPieceType() == (uint)Piece.GotePawn)
+                    && board.IsMyKingAttacked(board.CurrentTurn))
                 {
                     board.UndoMove(move);
                     continue;
@@ -295,6 +343,10 @@ namespace GoneuraOu.Search
                 board.UndoMove(move);
                 Ply--;
 
+#if DEBUG
+                Debug.Assert(oHash == board.Hash, "Hash not equal");
+#endif
+
                 // fail-hard beta cutoff
                 if (score >= beta)
                 {
@@ -344,9 +396,27 @@ namespace GoneuraOu.Search
                 return (int)Ply - Checkmate;
             }
 
+            if (entry.Flags == TranspositionFlag.Invalid || alpha != originalAlpha)
+            {
+                if (entry.Depth <= depth)
+                {
+                    var entryType = alpha <= originalAlpha
+                        ? TranspositionFlag.Alpha
+                        : alpha >= beta
+                            ? TranspositionFlag.Beta
+                            : TranspositionFlag.Exact;
+
+                    var valueToSave = TranspositionTable.TranspositionTable.RegularToTtScore(alpha, (int)Ply);
+
+                    TranspositionTable.TranspositionTable.Add(board.Hash,
+                        new TranspositionEntry(board.Hash, (byte)depth, entryType, valueToSave));
+                }
+            }
+
             return alpha;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
         public int Quiescence(Board.Board board, int alpha, int beta)
         {
             // Nodes++;

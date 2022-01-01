@@ -1,9 +1,11 @@
-﻿using GoneuraOu.Logic;
+﻿using System.Runtime.CompilerServices;
+using GoneuraOu.Logic;
 
 namespace GoneuraOu.Search
 {
     public static class MoveOrdering
     {
+        [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
         public static int ScoreMove(this Board.Board pos, uint move, Searcher searcher)
         {
             if (searcher.PrincipalVariationTable[0][searcher.Ply] == move)

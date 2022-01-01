@@ -26,7 +26,9 @@ namespace GoneuraOu.Commands
         {
             Console.Out.Flush();
 
-            Console.WriteLine("GoneuraOu Dev version 0.0");
+            Console.WriteLine("GoneuraOu Version 0.1a");
+
+            TranspositionTable.TranspositionTable.Init(16);
 
             var initAttacks = true;
 
@@ -77,6 +79,7 @@ namespace GoneuraOu.Commands
                         break;
 
                     case "d":
+                    case "board":
                         CurrentPosition.PrintBoard();
                         break;
 

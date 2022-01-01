@@ -3,48 +3,23 @@ using System.Collections.Generic;
 using System.Linq;
 using GoneuraOu.Board;
 using GoneuraOu.Common;
+using GoneuraOu.Evaluation;
 using GoneuraOu.Logic;
 using GoneuraOu.Search;
-using Microsoft.ML;
-using Microsoft.ML.Data;
 
 namespace NNUE
 {
-    public class FenEval
-    {
-        [LoadColumn(0)]
-        public string Fen;
-        [LoadColumn(1)]
-        public float Eval;
-    }
-    
-    public class BinEval
-    {
-        [VectorType((int)NeuralNetAdapt.NnSize)]
-        public float[] Bin;
-        public float Eval;
-    }
-    
-    public class Prediction
-    {
-        [ColumnName("Score")]
-        public float Eval;
-    }
-    
     public static class DataPrep
     {
-        public static void Rec(Board board, Searcher searcher, List<string> data, int depth)
+        public static int Rec(Board board, Searcher searcher, List<string> data, int depth)
         {
             if (depth == 0)
             {
-                return;
+                return searcher.Negamax(board, -987654, 987654, 6) * (board.CurrentTurn == Turn.Sente ? 1 : -1);
             }
-            
+
             var moves = board.GeneratePseudoLegalMoves().ToList();
-            moves.Sort((x, y) =>
-                board.ScoreMove(y, searcher).CompareTo(board.ScoreMove(x, searcher))
-            );
-            foreach (var m in moves.GetRange(0, Math.Max(depth, 2)))
+            foreach (var m in moves.GetRange(0, Math.Max(depth / 2, 2)))
             {
                 board.MakeMoveUnchecked(m);
 
@@ -55,16 +30,23 @@ namespace NNUE
                 }
 
                 var score = searcher.Negamax(board, -987654, 987654, 5);
+                var qscore = searcher.Quiescence(board, -987654, 987654);
 
-                data.Add($"{board.ToFen()}," +
-                         $"{score * (board.CurrentTurn == Turn.Sente ? 1 : -1)}");
-                
-                Rec(board, searcher, data, depth - 1);
+                var factor = board.CurrentTurn == Turn.Sente ? 1 : -1;
+
+                var idx = data.Count;
+                data.Add($"{board.ToFen()};score:" +
+                         $"{score * factor};eval:{board.Evaluate() * factor};qs:{qscore * factor};outcome:");
+
+                var res = Rec(board, searcher, data, depth - 1);
+                data[idx] += res > 130 ? "1.0" : res < -130 ? "0.0" : "0.5";
 
                 board.UndoMove(m);
             }
+
+            return searcher.Negamax(board, -987654, 987654, 6) * (board.CurrentTurn == Turn.Sente ? 1 : -1);
         }
-        
+
         public static void Prep()
         {
             Console.WriteLine("Prepping...");
@@ -73,12 +55,10 @@ namespace NNUE
 
             var data = new List<string>();
 
-            data.Add("Pos,Eval");
-
             Rec(board, searcher, data, 6);
 
-            System.IO.File.WriteAllText("data.csv", string.Join('\n', data));
-            
+            System.IO.File.WriteAllText("data.txt", string.Join('\n', data));
+
             Console.WriteLine("Done!");
         }
     }

@@ -4,6 +4,7 @@ using System.Runtime.CompilerServices;
 using GoneuraOu.Bitboard;
 using GoneuraOu.Common;
 using GoneuraOu.Logic;
+using GoneuraOu.ZobristHashing;
 
 namespace GoneuraOu.Board
 {
@@ -34,6 +35,8 @@ namespace GoneuraOu.Board
         public bool[][] PawnFiles = Utils.CreateJaggedArray<bool[][]>(2, 5);
 
         public Stack<byte> CaptureHistory = new();
+
+        public uint Hash;
 
         public const string StartingSFen = "rbsgk/4p/5/P4/KGSBR[-] w - 1";
 
@@ -124,6 +127,8 @@ namespace GoneuraOu.Board
             }
 
             CurrentTurn = parts[1] == "w" ? Turn.Sente : Turn.Gote;
+
+            Hash = this.ComputeHash();
         }
 
         public string ToFen()
@@ -186,6 +191,7 @@ namespace GoneuraOu.Board
         /// <summary>
         /// MakeMove, updating self
         /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
         public void MakeMoveUnchecked(uint move)
         {
             var target = move.GetTarget();
@@ -195,10 +201,11 @@ namespace GoneuraOu.Board
             // handle drop
             if (drop == 1)
             {
-                var tt = (uint)CurrentTurn * 10;
+                var tt = CurrentTurn == Turn.Sente ? 0u : 10;
                 Utils.ForceSetBit(ref Bitboards[pt + tt], (int)target);
                 Utils.ForceSetBit(ref Occupancies[(int)CurrentTurn], (int)target);
                 PieceLoc[target] = pt + tt;
+
                 if (pt == (int)Piece.SentePawn)
                 {
                     if (CurrentTurn == Turn.Sente)
@@ -214,11 +221,20 @@ namespace GoneuraOu.Board
                 if (Pocket[(int)CurrentTurn][pt * 2])
                 {
                     Pocket[(int)CurrentTurn][pt * 2] = false;
+
+                    Hash ^= ZobristHashing.ZobristHashing.HandHashes[(uint)CurrentTurn][pt * 2];
+
+                    if (Pocket[(int)CurrentTurn][pt * 2 + 1])
+                        Hash ^= ZobristHashing.ZobristHashing.HandHashes[(uint)CurrentTurn][pt * 2 + 1];
                 }
                 else
                 {
                     Pocket[(int)CurrentTurn][pt * 2 + 1] = false;
+
+                    Hash ^= ZobristHashing.ZobristHashing.HandHashes[(uint)CurrentTurn][pt * 2];
                 }
+
+                Hash ^= ZobristHashing.ZobristHashing.PieceHashes[target][pt + tt];
             }
             else
             {
@@ -231,6 +247,8 @@ namespace GoneuraOu.Board
                 Utils.ForcePopBit(ref Occupancies[(int)CurrentTurn], (int)source);
 
                 var ppt = promote == 1 ? Constants.PromotesTo[pt] : (int)pt;
+                var spt = PieceLoc[source]!.Value;
+
                 Utils.ForceSetBit(ref Bitboards[ppt], (int)target);
                 Utils.ForceSetBit(ref Occupancies[(int)CurrentTurn], (int)target);
 
@@ -261,17 +279,24 @@ namespace GoneuraOu.Board
                     }
 
                     CaptureHistory.Push((byte)plt);
+                    Hash ^= ZobristHashing.ZobristHashing.PieceHashes[target][plt];
                 }
 
                 PieceLoc[source] = null;
                 PieceLoc[target] = (uint)ppt;
+
+                Hash ^= ZobristHashing.ZobristHashing.PieceHashes[source][spt];
+                Hash ^= ZobristHashing.ZobristHashing.PieceHashes[target][ppt];
             }
 
             Occupancies[2] = Occupancies[0] | Occupancies[1];
 
             CurrentTurn = CurrentTurn.Invert();
+
+            Hash ^= ZobristHashing.ZobristHashing.GoteTurn;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
         public void UndoMove(uint move)
         {
             CurrentTurn = CurrentTurn.Invert();
@@ -283,7 +308,7 @@ namespace GoneuraOu.Board
             // handle drop
             if (drop == 1)
             {
-                var tt = (uint)CurrentTurn * 10;
+                var tt = CurrentTurn == Turn.Sente ? 0 : 10;
                 Utils.ForcePopBit(ref Bitboards[pt + tt], (int)target);
                 Utils.ForcePopBit(ref Occupancies[(int)CurrentTurn], (int)target);
 
@@ -304,11 +329,21 @@ namespace GoneuraOu.Board
                 if (!Pocket[(int)CurrentTurn][pt * 2])
                 {
                     Pocket[(int)CurrentTurn][pt * 2] = true;
+
+                    Hash ^= ZobristHashing.ZobristHashing.HandHashes[(uint)CurrentTurn][pt * 2];
+
+                    if (Pocket[(int)CurrentTurn][pt * 2 + 1])
+                        Hash ^= ZobristHashing.ZobristHashing.HandHashes[(uint)CurrentTurn][pt * 2 + 1];
                 }
                 else
                 {
                     Pocket[(int)CurrentTurn][pt * 2 + 1] = true;
+
+                    Hash ^= ZobristHashing.ZobristHashing.HandHashes[(uint)CurrentTurn][pt * 2];
+                    Hash ^= ZobristHashing.ZobristHashing.HandHashes[(uint)CurrentTurn][pt * 2 + 1];
                 }
+
+                Hash ^= ZobristHashing.ZobristHashing.PieceHashes[target][pt + tt];
             }
             else
             {
@@ -351,6 +386,8 @@ namespace GoneuraOu.Board
                     }
 
                     PieceLoc[target] = plt;
+
+                    Hash ^= ZobristHashing.ZobristHashing.PieceHashes[target][plt];
                 }
                 else
                 {
@@ -358,23 +395,32 @@ namespace GoneuraOu.Board
                 }
 
                 PieceLoc[source] = pt;
+
+                Hash ^= ZobristHashing.ZobristHashing.PieceHashes[source][pt];
+                Hash ^= ZobristHashing.ZobristHashing.PieceHashes[target][ppt];
             }
 
             Occupancies[2] = Occupancies[0] | Occupancies[1];
+
+            Hash ^= ZobristHashing.ZobristHashing.GoteTurn;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
         public void MakeNullMove()
         {
             CurrentTurn = CurrentTurn.Invert();
+            Hash ^= ZobristHashing.ZobristHashing.GoteTurn;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
         public void UndoNullMove()
         {
             CurrentTurn = CurrentTurn.Invert();
+            Hash ^= ZobristHashing.ZobristHashing.GoteTurn;
         }
 
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
         public bool IsMyKingAttacked(Turn turn)
         {
             return this.IsAttacked(
@@ -438,6 +484,7 @@ namespace GoneuraOu.Board
             }
 
             Console.WriteLine($"Turn: {CurrentTurn}");
+            Console.WriteLine($"Hash: {Hash}");
         }
     }
 }
