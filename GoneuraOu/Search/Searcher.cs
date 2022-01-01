@@ -226,9 +226,9 @@ namespace GoneuraOu.Search
                 }
 
                 // Deep Razoring
-                if (depth == 4 && eval + 630 <= alpha)
+                if (depth == 4 && eval + 650 <= alpha)
                 {
-                    return Negamax(board, alpha, beta, 1);
+                    return Quiescence(board, alpha, beta);
                 }
 
                 if (doNull)
