@@ -84,6 +84,8 @@ namespace GoneuraOu.Search
             bool isMate;
             string scoreText;
 
+            uint mateCount = 0;
+
             for (var depth = 1u; depth <= maxDepth; depth++)
             {
                 SelDepth = 0;
@@ -98,6 +100,9 @@ namespace GoneuraOu.Search
                 score = newScore;
 
                 isMate = Math.Abs(Math.Abs(score) - Checkmate) < 100;
+
+                if (isMate) mateCount++;
+                else mateCount = 0;
 
                 scoreText =
                     isMate ? $"mate {(score > 0 ? 1 : -1) * (Checkmate - Math.Abs(score))}" : $"cp {score}";
@@ -118,7 +123,7 @@ namespace GoneuraOu.Search
 
                 depthReached = depth;
 
-                if (isMate)
+                if (mateCount == 2)
                 {
                     break;
                 }
@@ -399,11 +404,6 @@ namespace GoneuraOu.Search
                     }
 
                     PrincipalVariationLengths[Ply] = PrincipalVariationLengths[Ply + 1];
-                }
-
-                if (Math.Abs(Math.Abs(score) - Checkmate) < 100)
-                {
-                    return score;
                 }
             }
 
