@@ -105,7 +105,7 @@ namespace GoneuraOu.Search
                 else mateCount = 0;
 
                 scoreText =
-                    isMate ? $"mate {(score > 0 ? 1 : -1) * (Checkmate - Math.Abs(score))}" : $"cp {score}";
+                    isMate ? $"mate {(score > 0 ? 1 : -1) * (Checkmate - Math.Abs(score)) / 2}" : $"cp {score}";
 
                 Console.Write(
                     $"info depth {depth} seldepth {SelDepth} score {scoreText} nodes {Nodes} time {_timer.ElapsedMilliseconds} " +
@@ -144,7 +144,7 @@ namespace GoneuraOu.Search
             isMate = Math.Abs(Math.Abs(score) - Checkmate) < 100;
 
             scoreText =
-                isMate ? $"mate {(score > 0 ? 1 : -1) * (Checkmate - Math.Abs(score))}" : $"cp {score}";
+                isMate ? $"mate {(score > 0 ? 1 : -1) * (Checkmate - Math.Abs(score)) / 2}" : $"cp {score}";
 
             Console.Write(
                 $"info depth {depthReached} seldepth {SelDepth} score {scoreText} nodes {Nodes} time {_timer.ElapsedMilliseconds} " +
@@ -286,7 +286,7 @@ namespace GoneuraOu.Search
                     && (
                         move.GetPieceType() == (uint)Piece.SentePawn ||
                         move.GetPieceType() == (uint)Piece.GotePawn)
-                    && board.IsMyKingAttacked(board.CurrentTurn))
+                    && !board.GenerateNoDropMoves().Any())
                 {
                     board.UndoMove(move);
                     continue;
@@ -309,7 +309,7 @@ namespace GoneuraOu.Search
                                                  && !incheck
                                                  && !board.IsMyKingAttacked(board.CurrentTurn.Invert()))
                     {
-                        var dp = legals >= FullDepthLimit + 1
+                        var dp = legals >= FullDepthLimit + 2
                             ? legals >= MoreReductionDepthLimit
                                 ? depth / 2
                                 : depth * 3 / 4

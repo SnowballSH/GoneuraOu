@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Linq;
 using GoneuraOu.Board;
 using GoneuraOu.Common;
 using GoneuraOu.Logic;
@@ -32,8 +33,7 @@ namespace GoneuraOu.Commands
                         (uint)Piece.SentePawn ||
                         move.GetPieceType() ==
                         (uint)Piece.GotePawn)
-                    && board.IsMyKingAttacked(
-                        board.CurrentTurn))
+                    && !board.GenerateNoDropMoves().Any())
                 {
                     board.UndoMove(move);
                     continue;
@@ -78,7 +78,7 @@ namespace GoneuraOu.Commands
                          && (
                              move.GetPieceType() == (uint)Piece.SentePawn ||
                              move.GetPieceType() == (uint)Piece.GotePawn)
-                         && board.IsMyKingAttacked(board.CurrentTurn))
+                         && !board.GenerateNoDropMoves().Any())
                 {
                 }
                 else

@@ -92,6 +92,8 @@ namespace GoneuraOu.Evaluation
 
             var senteRookMobility = 0;
             var goteRookMobility = 0;
+            var senteBishopMobility = 0;
+            var goteBishopMobility = 0;
 
             var idx = 0;
             foreach (var p in position.PieceLoc)
@@ -153,6 +155,20 @@ namespace GoneuraOu.Evaluation
                         case Piece.GoteDragon:
                             goteRookMobility += Attacks.GetDragonAttacks(idx, position.Occupancies[2]).Count();
                             break;
+
+                        case Piece.SenteBishop:
+                            senteBishopMobility += Attacks.GetBishopAttacks(idx, position.Occupancies[2]).Count();
+                            break;
+                        case Piece.SenteHorse:
+                            senteBishopMobility += Attacks.GetHorseAttacks(idx, position.Occupancies[2]).Count();
+                            break;
+
+                        case Piece.GoteBishop:
+                            goteBishopMobility += Attacks.GetBishopAttacks(idx, position.Occupancies[2]).Count();
+                            break;
+                        case Piece.GoteHorse:
+                            goteBishopMobility += Attacks.GetHorseAttacks(idx, position.Occupancies[2]).Count();
+                            break;
                     }
                 }
 
@@ -185,12 +201,13 @@ namespace GoneuraOu.Evaluation
             var hand = handSente - handGote;
 
             var distance = distanceSente - distanceGote;
-            var mobility = senteRookMobility - goteRookMobility;
+            var mobility = (senteRookMobility - goteRookMobility) * 3
+                           + (senteBishopMobility - goteBishopMobility) * 2;
 
             // King Safety
             var kingSafetySente =
                 ((Attacks.KingAttacks[sking] & position.Occupancies[0]).Count() -
-                 Attacks.KingAttacks[sking].Count() / 2) * 7;
+                 Attacks.KingAttacks[sking].Count()) * 30;
 
             if (kingSafetySente < -50)
             {
@@ -205,11 +222,44 @@ namespace GoneuraOu.Evaluation
                 kingSafetySente -= handGote / 50;
             }
 
-            kingSafetySente -= goteRookMobility;
+            kingSafetySente -= goteRookMobility * 3;
+            kingSafetySente -= goteBishopMobility * 3;
+
+            if (position.Pocket[1][(int)Piece.SenteRook * 2])
+            {
+                if (kingSafetySente < -20)
+                {
+                    kingSafetySente -= kingSafetySente / 2 + 20;
+                }
+            }
+
+            if (position.Pocket[1][(int)Piece.SenteRook * 2 + 1])
+            {
+                if (kingSafetySente < -20)
+                {
+                    kingSafetySente -= kingSafetySente / 2 + 20;
+                }
+            }
+
+            if (position.Pocket[1][(int)Piece.SenteBishop * 2])
+            {
+                if (kingSafetySente < -20)
+                {
+                    kingSafetySente -= kingSafetySente / 2 + 5;
+                }
+            }
+
+            if (position.Pocket[1][(int)Piece.SenteBishop * 2 + 1])
+            {
+                if (kingSafetySente < -20)
+                {
+                    kingSafetySente -= kingSafetySente / 2 + 5;
+                }
+            }
 
             var kingSafetyGote =
                 ((Attacks.KingAttacks[gking] & position.Occupancies[1]).Count() -
-                 Attacks.KingAttacks[gking].Count() / 2) * 7;
+                 Attacks.KingAttacks[gking].Count()) * 30;
 
             if (kingSafetyGote < -50)
             {
@@ -224,12 +274,45 @@ namespace GoneuraOu.Evaluation
                 kingSafetyGote -= handSente / 50;
             }
 
-            kingSafetyGote -= senteRookMobility;
+            kingSafetyGote -= senteRookMobility * 3;
+            kingSafetyGote -= senteBishopMobility * 3;
+
+            if (position.Pocket[0][(int)Piece.SenteRook * 2])
+            {
+                if (kingSafetyGote < -20)
+                {
+                    kingSafetyGote -= kingSafetyGote / 2 + 20;
+                }
+            }
+
+            if (position.Pocket[0][(int)Piece.SenteRook * 2 + 1])
+            {
+                if (kingSafetyGote < -20)
+                {
+                    kingSafetyGote -= kingSafetyGote / 2 + 20;
+                }
+            }
+
+            if (position.Pocket[0][(int)Piece.SenteBishop * 2])
+            {
+                if (kingSafetyGote < -20)
+                {
+                    kingSafetyGote -= kingSafetyGote / 2 + 5;
+                }
+            }
+
+            if (position.Pocket[0][(int)Piece.SenteBishop * 2 + 1])
+            {
+                if (kingSafetySente < -20)
+                {
+                    kingSafetyGote -= kingSafetyGote / 2 + 5;
+                }
+            }
 
             var kingSafetyCount =
                 kingSafetySente - kingSafetyGote;
 
-            var sum = (onboard + hand + kingSafetyCount * 7 + distance * 7 + mobility * 3) * mul;
+            var sum = (onboard + hand + kingSafetyCount * 7 + distance * 7 + mobility * 2) * mul;
 
             const int tempo = 3;
 
@@ -243,7 +326,7 @@ namespace GoneuraOu.Evaluation
                     "Type           Sente Gote\n" +
                     $"King Safety:   {kingSafetySente * 7,-5} {kingSafetyGote * 7,-5}\n" +
                     $"Distance:      {distanceSente * 7,-5} {distanceGote * 7,-5}\n" +
-                    $"Rook Mobility: {senteRookMobility * 3,-5} {goteRookMobility * 3,-5}\n" +
+                    $"Mobility:      {senteRookMobility * 3 + senteBishopMobility * 2,-5} {goteRookMobility * 3 + goteBishopMobility * 2,-5}\n" +
                     $"Hand:          {handSente,-5} {handGote,-5}\n" +
                     "---------------------\n" +
                     "For Current Player:\n" +

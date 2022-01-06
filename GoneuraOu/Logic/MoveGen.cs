@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using GoneuraOu.Bitboard;
 using GoneuraOu.Board;
 using GoneuraOu.Common;
@@ -8,6 +9,7 @@ namespace GoneuraOu.Logic
 {
     public static class MoveGen
     {
+        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
         public static IEnumerable<uint> GeneratePseudoLegalMoves(this Board.Board board)
         {
             foreach (var k in GenerateDropMoves(board))
@@ -15,6 +17,15 @@ namespace GoneuraOu.Logic
                 yield return k;
             }
 
+            foreach (var k in GenerateNoDropMoves(board))
+            {
+                yield return k;
+            }
+        }
+        
+        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+        public static IEnumerable<uint> GenerateNoDropMoves(this Board.Board board)
+        {
             // PAWN MOVES
             {
                 var bits = board.Bitboards[(int)(board.CurrentTurn == Turn.Sente ? Piece.SentePawn : Piece.GotePawn)];
@@ -286,6 +297,7 @@ namespace GoneuraOu.Logic
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
         public static IEnumerable<uint> GenerateDropMoves(this Board.Board board)
         {
             // DROPS
