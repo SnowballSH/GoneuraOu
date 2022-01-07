@@ -123,7 +123,7 @@ namespace GoneuraOu.Search
 
                 depthReached = depth;
 
-                if (mateCount == 2)
+                if (mateCount == 1)
                 {
                     break;
                 }
@@ -144,7 +144,7 @@ namespace GoneuraOu.Search
             isMate = Math.Abs(Math.Abs(score) - Checkmate) < 100;
 
             scoreText =
-                isMate ? $"mate {(score > 0 ? 1 : -1) * (Checkmate - Math.Abs(score)) / 2}" : $"cp {score}";
+                isMate ? $"mate {(score > 0 ? 1 : -1) * (Checkmate - Math.Abs(score)) / 2 + 1}" : $"cp {score}";
 
             Console.Write(
                 $"info depth {depthReached} seldepth {SelDepth} score {scoreText} nodes {Nodes} time {_timer.ElapsedMilliseconds} " +
@@ -164,13 +164,15 @@ namespace GoneuraOu.Search
         [MethodImpl(MethodImplOptions.AggressiveOptimization)]
         public int Negamax(Board.Board board, int alpha, int beta, uint depth, bool doNull = true)
         {
+            var incheck = board.IsMyKingAttacked(board.CurrentTurn);
+
 #if DEBUG
             var oHash = board.Hash;
 #endif
             var foundPv = false;
             var originalAlpha = alpha;
 
-            PrincipalVariationLengths[Ply] = Ply;
+            PrincipalVariationLengths[Ply] = Math.Max(Ply, PrincipalVariationLengths[Ply]);
 
             if (Ply > MaxPly - 1)
             {
@@ -179,12 +181,42 @@ namespace GoneuraOu.Search
 
             Nodes++;
 
+            if (Ply > 0)
+            {
+                // Mate distance pruning
+                if ((int)(Checkmate - Ply - 1) < beta)
+                {
+                    beta = (int)(Checkmate - Ply - 1);
+                    if (alpha >= beta)
+                    {
+                        return beta;
+                    }
+                }
+                if ((int)(-Checkmate + Ply) > alpha)
+                {
+                    alpha = (int)(-Checkmate + Ply);
+                    if (alpha >= beta)
+                    {
+                        return alpha;
+                    }
+                }
+            }
+
             var entry = TranspositionTable.TranspositionTable.Get(board.Hash);
+            var tthit = false;
+            uint? hashMove = null;
 
             if (entry.Flags != TranspositionFlag.Invalid && entry.Key == board.Hash)
             {
                 if (entry.Depth >= depth)
                 {
+                    tthit = true;
+
+                    if (entry.BestMove != 0)
+                    {
+                        hashMove = entry.BestMove;
+                    }
+
                     if (entry.Flags == TranspositionFlag.Exact)
                     {
                         return TranspositionTable.TranspositionTable.TtToRegularScore(entry.Score, (int)Ply);
@@ -202,6 +234,16 @@ namespace GoneuraOu.Search
 
                     if (alpha >= beta)
                     {
+                        if (entry.BestMove != 0)
+                        {
+                            PrincipalVariationTable[Ply][Ply] = entry.BestMove;
+                            for (var next = Ply + 1; next < PrincipalVariationLengths[Ply + 1]; next++)
+                            {
+                                PrincipalVariationTable[Ply][next] = PrincipalVariationTable[Ply + 1][next];
+                            }
+
+                            PrincipalVariationLengths[Ply] = PrincipalVariationLengths[Ply + 1];
+                        }
                         return TranspositionTable.TranspositionTable.TtToRegularScore(entry.Score, (int)Ply);
                     }
                 }
@@ -213,8 +255,6 @@ namespace GoneuraOu.Search
                 return Quiescence(board, alpha, beta);
             }
 
-            var incheck = board.IsMyKingAttacked(board.CurrentTurn);
-
             // Check extension
             if (incheck)
             {
@@ -225,13 +265,21 @@ namespace GoneuraOu.Search
                 var eval = board.Evaluate();
 
                 // Razoring
-                if (depth == 2 && eval + 460 <= alpha)
+                if (depth == 2 && eval + 375 <= alpha)
                 {
                     return Quiescence(board, alpha, beta);
                 }
 
+                // Reversed futility pruning
+                var margin = depth * 85;
+
+                if (depth < 8 && eval - margin >= beta)
+                {
+                    return eval - (int)margin;
+                }
+
                 // Deep Razoring
-                if (depth == 4 && eval + 650 <= alpha)
+                if (depth == 4 && eval + 750 <= alpha)
                 {
                     return Quiescence(board, alpha, beta);
                 }
@@ -264,10 +312,25 @@ namespace GoneuraOu.Search
                 }
             }
 
+            if (!tthit && depth >= 8)
+            {
+                var score = -Negamax(board, alpha, beta,
+                    depth - 7, doNull);
+                if (_maxTime.HasValue && (ulong)_timer.ElapsedMilliseconds > _maxTime.Value)
+                {
+                    return score;
+                }
+
+                if (PrincipalVariationLengths[Ply] != 0)
+                {
+                    hashMove = PrincipalVariationLengths[Ply];
+                }
+            }
+
             var moves = board.GeneratePseudoLegalMoves().ToList();
 
             moves.Sort((x, y) =>
-                board.ScoreMove(y, this).CompareTo(board.ScoreMove(x, this))
+                board.ScoreMove(y, this, hashMove).CompareTo(board.ScoreMove(x, this, hashMove))
             );
 
             var legals = 0;
@@ -311,8 +374,8 @@ namespace GoneuraOu.Search
                     {
                         var dp = legals >= FullDepthLimit + 2
                             ? legals >= MoreReductionDepthLimit
-                                ? depth / 2
-                                : depth * 3 / 4
+                                ? depth / 4
+                                : depth / 2
                             : depth - 2;
                         score = -Negamax(board, -alpha - 1, -alpha, dp);
                         if (_maxTime.HasValue && (ulong)_timer.ElapsedMilliseconds > _maxTime.Value)
@@ -425,7 +488,7 @@ namespace GoneuraOu.Search
                     var valueToSave = TranspositionTable.TranspositionTable.RegularToTtScore(alpha, (int)Ply);
 
                     TranspositionTable.TranspositionTable.Add(board.Hash,
-                        new TranspositionEntry(board.Hash, (byte)depth, entryType, valueToSave));
+                        new TranspositionEntry(board.Hash, (byte)depth, entryType, valueToSave, PrincipalVariationTable[Ply][Ply]));
                 }
             }
 
@@ -435,7 +498,7 @@ namespace GoneuraOu.Search
         [MethodImpl(MethodImplOptions.AggressiveOptimization)]
         public int Quiescence(Board.Board board, int alpha, int beta)
         {
-            // Nodes++;
+            Nodes++;
             SelDepth = Math.Max(SelDepth, Ply);
 
             var evaluation = board.Evaluate();

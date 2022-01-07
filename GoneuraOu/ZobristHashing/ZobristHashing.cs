@@ -35,7 +35,7 @@ namespace GoneuraOu.ZobristHashing
 
             for (var t = 0; t < 2; t++)
             {
-                for (var i = 0; i < 20; i += 2)
+                for (var i = 0; i < 10; i += 2)
                 {
                     var count = 0;
                     if (board.Pocket[t][i]) count++;

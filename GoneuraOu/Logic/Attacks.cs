@@ -27,6 +27,7 @@ namespace GoneuraOu.Logic
         /// -$-$-
         public static readonly uint[][] SilverAttacks;
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
         private static uint GeneratePawnAttacks(int square, Turn turn)
         {
             var bb = 0u.SetBitAt(square);
@@ -45,6 +46,7 @@ namespace GoneuraOu.Logic
             return attacks;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
         private static uint GenerateGoldAttacks(int square, Turn turn)
         {
             var bb = 0u.SetBitAt(square);
@@ -112,6 +114,7 @@ namespace GoneuraOu.Logic
             return attacks;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
         private static uint GenerateSilverAttacks(int square, Turn turn)
         {
             var bb = 0u.SetBitAt(square);
@@ -171,6 +174,7 @@ namespace GoneuraOu.Logic
             return attacks;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
         private static uint GenerateKingAttacks(int square)
         {
             var bb = 0u.SetBitAt(square);
@@ -192,6 +196,7 @@ namespace GoneuraOu.Logic
         /// <summary>
         /// Generate bishop moves, but counting blocking pieces
         /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
         public static uint GenerateBishopAttacksOnTheFly(int square, uint block)
         {
             uint attacks = 0;

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 using GoneuraOu.Bitboard;
 using GoneuraOu.Board;
 using GoneuraOu.Common;
@@ -78,6 +79,7 @@ namespace GoneuraOu.Evaluation
             1, 0, 2, 0, 1,
         };
 
+        [MethodImpl(MethodImplOptions.AggressiveOptimization | MethodImplOptions.AggressiveInlining)]
         public static int Evaluate(this Board.Board position, bool debug = false)
         {
             var mul = -2 * (int)position.CurrentTurn + 1;
@@ -117,7 +119,7 @@ namespace GoneuraOu.Evaluation
                             Piece.GoteGold or Piece.GoteTokin or Piece.GotePromotedSilver or Piece.GoteSilver =>
                                 -GoldPsqT[24 - idx],
                             _ => 0
-                        } * 2 / 3;
+                        } * 4;
 
                     onboard += material;
                     onboard += psqt;
@@ -207,7 +209,7 @@ namespace GoneuraOu.Evaluation
             // King Safety
             var kingSafetySente =
                 ((Attacks.KingAttacks[sking] & position.Occupancies[0]).Count() -
-                 Attacks.KingAttacks[sking].Count()) * 30;
+                 Attacks.KingAttacks[sking].Count()) * 20;
 
             if (kingSafetySente < -50)
             {
@@ -227,39 +229,39 @@ namespace GoneuraOu.Evaluation
 
             if (position.Pocket[1][(int)Piece.SenteRook * 2])
             {
-                if (kingSafetySente < -20)
+                if (kingSafetySente < -100)
                 {
-                    kingSafetySente -= kingSafetySente / 2 + 20;
+                    kingSafetySente -= kingSafetySente / 4 + 20;
                 }
             }
 
             if (position.Pocket[1][(int)Piece.SenteRook * 2 + 1])
             {
-                if (kingSafetySente < -20)
+                if (kingSafetySente < -100)
                 {
-                    kingSafetySente -= kingSafetySente / 2 + 20;
+                    kingSafetySente -= kingSafetySente / 4 + 20;
                 }
             }
 
             if (position.Pocket[1][(int)Piece.SenteBishop * 2])
             {
-                if (kingSafetySente < -20)
+                if (kingSafetySente < -100)
                 {
-                    kingSafetySente -= kingSafetySente / 2 + 5;
+                    kingSafetySente -= kingSafetySente / 4 + 5;
                 }
             }
 
             if (position.Pocket[1][(int)Piece.SenteBishop * 2 + 1])
             {
-                if (kingSafetySente < -20)
+                if (kingSafetySente < -100)
                 {
-                    kingSafetySente -= kingSafetySente / 2 + 5;
+                    kingSafetySente -= kingSafetySente / 4 + 5;
                 }
             }
 
             var kingSafetyGote =
                 ((Attacks.KingAttacks[gking] & position.Occupancies[1]).Count() -
-                 Attacks.KingAttacks[gking].Count()) * 30;
+                 Attacks.KingAttacks[gking].Count()) * 20;
 
             if (kingSafetyGote < -50)
             {
@@ -279,33 +281,33 @@ namespace GoneuraOu.Evaluation
 
             if (position.Pocket[0][(int)Piece.SenteRook * 2])
             {
-                if (kingSafetyGote < -20)
+                if (kingSafetyGote < -100)
                 {
-                    kingSafetyGote -= kingSafetyGote / 2 + 20;
+                    kingSafetyGote -= kingSafetyGote / 4 + 20;
                 }
             }
 
             if (position.Pocket[0][(int)Piece.SenteRook * 2 + 1])
             {
-                if (kingSafetyGote < -20)
+                if (kingSafetyGote < -100)
                 {
-                    kingSafetyGote -= kingSafetyGote / 2 + 20;
+                    kingSafetyGote -= kingSafetyGote / 4 + 20;
                 }
             }
 
             if (position.Pocket[0][(int)Piece.SenteBishop * 2])
             {
-                if (kingSafetyGote < -20)
+                if (kingSafetyGote < -100)
                 {
-                    kingSafetyGote -= kingSafetyGote / 2 + 5;
+                    kingSafetyGote -= kingSafetyGote / 4 + 5;
                 }
             }
 
             if (position.Pocket[0][(int)Piece.SenteBishop * 2 + 1])
             {
-                if (kingSafetySente < -20)
+                if (kingSafetySente < -100)
                 {
-                    kingSafetyGote -= kingSafetyGote / 2 + 5;
+                    kingSafetyGote -= kingSafetyGote / 4 + 5;
                 }
             }
 

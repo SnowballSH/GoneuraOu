@@ -27,9 +27,8 @@ namespace GoneuraOu.Board
         /*
          *  You can only have max 10 pieces per player in pocket:
          *  2 pawns 2 golds 2 silvers 2 rooks 2 bishops
-         *  note that this is different from the 20 above
          */
-        public bool[][] Pocket = Utils.CreateJaggedArray<bool[][]>(2, 20);
+        public bool[][] Pocket = Utils.CreateJaggedArray<bool[][]>(2, 10);
 
         public Turn CurrentTurn;
         public bool[][] PawnFiles = Utils.CreateJaggedArray<bool[][]>(2, 5);
@@ -54,7 +53,7 @@ namespace GoneuraOu.Board
         {
             Array.Clear(Bitboards);
             Array.Clear(Occupancies);
-            Pocket = Utils.CreateJaggedArray<bool[][]>(2, 20);
+            Pocket = Utils.CreateJaggedArray<bool[][]>(2, 10);
             PawnFiles = Utils.CreateJaggedArray<bool[][]>(2, 5);
             Array.Clear(PieceLoc);
             CaptureHistory.Clear();

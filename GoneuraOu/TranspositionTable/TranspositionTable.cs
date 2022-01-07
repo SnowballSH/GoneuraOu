@@ -18,13 +18,15 @@ namespace GoneuraOu.TranspositionTable
         public byte Depth;
         public TranspositionFlag Flags;
         public int Score;
+        public uint BestMove;
 
-        public TranspositionEntry(uint key, byte depth, TranspositionFlag flags, int score)
+        public TranspositionEntry(uint key, byte depth, TranspositionFlag flags, int score, uint bestMove)
         {
             Key = key;
             Depth = depth;
             Flags = flags;
             Score = score;
+            BestMove = bestMove;
         }
     }
 

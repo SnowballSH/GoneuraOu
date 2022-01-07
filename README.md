@@ -2,7 +2,7 @@
 
 Decent UCI Minishogi (5x5 shogi) Engine
 
-Current Strength: Around **1900 ELO**
+Current Strength: Around **2100 ELO** (Blitz & up), 1800 ELO (Bullet)
 
 ## Technology
 
@@ -23,18 +23,20 @@ Technologies used to build this engine: (crossed-out means in the future)
     - Null-Move Pruning
     - Check Extension
     - Razoring
-    - Deep Razoring
     - Late-Move-Reduction (LMR)
+    - Reverse Futility Pruning
+    - Mate Distance Pruning
     - Transposition Table (a little buggy though...)
     - ~~SEE (Static Exchange Evaluation)~~
     - ~~MTD(f)~~
-    - ~~Futility Pruning~~
+
 
 - Move Ordering
     - MVV-LVA
     - History Moves
     - Killer Moves
     - Second Killer Moves
+    - Hash Move
     - ~~Checks~~
 
 - Evaluation
@@ -44,12 +46,38 @@ Technologies used to build this engine: (crossed-out means in the future)
     - King Safety
     - Slider activity
     - King activity
+    - Drop danger
     - ~~Pins~~
     - ~~NNUE for accurate evaluation~~
 
 ## Games
 
 Games during development progress:
+
+Defeats Fairy-Stockfish 1900 ELO (From now on, evaluation will be provided.):
+
+```
+[White "Fairy-Stockfish 1900 ELO"]
+[Black "GoneuraOu"]
+[Result "0-1"]
+[TimeControl "40/120+1"]
+[Variant "minishogi"]
+
+1. Gb2 {+0.05/24 19s} Sd4 {+0.21/14 7.0s} 2. Bb3 {+1.00/19 3.9s}
+Bc4 {-0.13/13 6.7s} 3. Bc2 {+0.06/23 17s} Rb5 {+0.53/13 6.4s}
+4. Rd1 {-0.07/23 14s} Rc5 {+0.83/14 6.2s} 5. Ba4 {+0.53/22 14s}
+Be2 {+0.86/14 5.9s} 6. Re1 {-0.30/19 5.1s} Bb5 {+0.86/14 5.7s}
+7. Bxb5+ {-0.53/23 12s} Rxb5 {+1.18/12 5.4s} 8. B@e2 {-2.30/20 11s}
+Ra5 {+3.03/12 5.2s} 9. Sc2 {-2.00/19 6.4s} Pe3 {+2.37/12 5.0s}
+10. Sb3 {-1.76/18 8.7s} Pxe2 {+8.01/12 4.8s} 11. Rxe2 {-4.16/17 7.6s}
+B@e4 {+7.77/10 4.6s} 12. Sb4 {-4.53/16 6.6s} Ra4 {+8.95/11 4.4s}
+13. Sa3 {-7.07/17 5.7s} Rc4 {+11.41/11 4.2s} 14. Re1 {-11.61/15 3.2s}
+B@d2 {+13.29/12 4.1s} 15. Rd1 {-10.61/15 1.4s} Bc1+ {+17.31/13 3.9s}
+16. P@e3 {-M14/30 0.91s} +Bxd1 {+21.07/13 3.8s} 17. Pxe4 {-M14/41 0.44s}
+Gxe4 {+23.96/12 3.6s} 18. Gb1 {-M12/31 0.64s} R@c1 {+M11/11 0.75s}
+19. B@d3 {-M8/45 0.51s} Sxd3 {+M7/7 0.010s} 20. Sa4 {-M6/109 0.49s}
+B@d4 {+M1/4 0.001s, Gote mates} 0-1
+```
 
 Finds forced checkmate in 14 (halfmoves) against Fairy-Stockfish 1800 ELO: (blitz 3+2)
 

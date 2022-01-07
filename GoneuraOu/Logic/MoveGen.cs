@@ -9,7 +9,7 @@ namespace GoneuraOu.Logic
 {
     public static class MoveGen
     {
-        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+        [MethodImpl(MethodImplOptions.AggressiveOptimization | MethodImplOptions.AggressiveInlining)]
         public static IEnumerable<uint> GeneratePseudoLegalMoves(this Board.Board board)
         {
             foreach (var k in GenerateDropMoves(board))
@@ -22,7 +22,7 @@ namespace GoneuraOu.Logic
                 yield return k;
             }
         }
-        
+
         [MethodImpl(MethodImplOptions.AggressiveOptimization)]
         public static IEnumerable<uint> GenerateNoDropMoves(this Board.Board board)
         {
@@ -297,7 +297,7 @@ namespace GoneuraOu.Logic
             }
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+        [MethodImpl(MethodImplOptions.AggressiveOptimization | MethodImplOptions.AggressiveInlining)]
         public static IEnumerable<uint> GenerateDropMoves(this Board.Board board)
         {
             // DROPS

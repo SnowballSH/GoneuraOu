@@ -6,8 +6,13 @@ namespace GoneuraOu.Search
     public static class MoveOrdering
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
-        public static int ScoreMove(this Board.Board pos, uint move, Searcher searcher)
+        public static int ScoreMove(this Board.Board pos, uint move, Searcher searcher, uint? forceFirstMove = null)
         {
+            if (move == forceFirstMove)
+            {
+                return 50000;
+            }
+
             if (searcher.PrincipalVariationTable[0][searcher.Ply] == move)
             {
                 return 20000;
@@ -18,12 +23,12 @@ namespace GoneuraOu.Search
             if (move.GetCapture() == 1)
             {
                 var tp = pos.PieceLoc[move.GetTarget()]!;
-                return MvvLvaTable[(int)sp][(int)tp] + 5000;
+                return MvvLvaTable[(int)sp][(int)tp] + 4000;
             }
 
             if (move.GetDrop() == 1)
             {
-                return MvvLvaTable[(int)sp][0] + 4000;
+                return MvvLvaTable[0][(int)move.GetPieceType()] + 3500;
             }
 
             if (searcher.KillerMoves[0][searcher.Ply] == move)

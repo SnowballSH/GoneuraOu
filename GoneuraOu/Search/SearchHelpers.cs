@@ -6,7 +6,7 @@ namespace GoneuraOu.Search
     {
         public const uint MaxPly = 128;
         public const uint FullDepthLimit = 2;
-        public const uint ReductionLimit = 3;
+        public const uint ReductionLimit = 2;
         public const uint MoreReductionDepthLimit = 6;
 
         public const int Infinity = 7654321;
