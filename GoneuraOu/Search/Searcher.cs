@@ -92,7 +92,7 @@ namespace GoneuraOu.Search
 
                 var newScore = Negamax(board, alpha, beta, depth);
 
-                if (_maxTime.HasValue && (ulong)_timer.ElapsedMilliseconds > _maxTime.Value)
+                if (StopSearch.Stop || _maxTime.HasValue && (ulong)_timer.ElapsedMilliseconds > _maxTime.Value)
                 {
                     break;
                 }
@@ -300,7 +300,7 @@ namespace GoneuraOu.Search
                     board.UndoNullMove();
                     Ply--;
 
-                    if (_maxTime.HasValue && (ulong)_timer.ElapsedMilliseconds > _maxTime.Value)
+                    if (StopSearch.Stop || _maxTime.HasValue && (ulong)_timer.ElapsedMilliseconds > _maxTime.Value)
                     {
                         return score;
                     }
@@ -316,7 +316,7 @@ namespace GoneuraOu.Search
             {
                 var score = -Negamax(board, alpha, beta,
                     depth - 7, doNull);
-                if (_maxTime.HasValue && (ulong)_timer.ElapsedMilliseconds > _maxTime.Value)
+                if (StopSearch.Stop || _maxTime.HasValue && (ulong)_timer.ElapsedMilliseconds > _maxTime.Value)
                 {
                     return score;
                 }
@@ -378,7 +378,7 @@ namespace GoneuraOu.Search
                                 : depth / 2
                             : depth - 2;
                         score = -Negamax(board, -alpha - 1, -alpha, dp);
-                        if (_maxTime.HasValue && (ulong)_timer.ElapsedMilliseconds > _maxTime.Value)
+                        if (StopSearch.Stop || _maxTime.HasValue && (ulong)_timer.ElapsedMilliseconds > _maxTime.Value)
                         {
                             board.UndoMove(move);
                             Ply--;
@@ -393,7 +393,7 @@ namespace GoneuraOu.Search
                     if (score > alpha)
                     {
                         score = -Negamax(board, -alpha - 1, -alpha, depth - 1);
-                        if (_maxTime.HasValue && (ulong)_timer.ElapsedMilliseconds > _maxTime.Value)
+                        if (StopSearch.Stop || _maxTime.HasValue && (ulong)_timer.ElapsedMilliseconds > _maxTime.Value)
                         {
                             board.UndoMove(move);
                             Ply--;
@@ -404,7 +404,7 @@ namespace GoneuraOu.Search
                         if (score > alpha && score < beta)
                         {
                             score = -Negamax(board, -beta, -alpha, depth - 1);
-                            if (_maxTime.HasValue && (ulong)_timer.ElapsedMilliseconds > _maxTime.Value)
+                            if (StopSearch.Stop || _maxTime.HasValue && (ulong)_timer.ElapsedMilliseconds > _maxTime.Value)
                             {
                                 board.UndoMove(move);
                                 Ply--;
@@ -416,7 +416,7 @@ namespace GoneuraOu.Search
                 else
                 {
                     score = -Negamax(board, -beta, -alpha, depth - 1);
-                    if (_maxTime.HasValue && (ulong)_timer.ElapsedMilliseconds > _maxTime.Value)
+                    if (StopSearch.Stop || _maxTime.HasValue && (ulong)_timer.ElapsedMilliseconds > _maxTime.Value)
                     {
                         board.UndoMove(move);
                         Ply--;
@@ -540,7 +540,7 @@ namespace GoneuraOu.Search
                 board.UndoMove(move);
                 Ply--;
 
-                if (_maxTime.HasValue && (ulong)_timer.ElapsedMilliseconds > _maxTime.Value)
+                if (StopSearch.Stop || _maxTime.HasValue && (ulong)_timer.ElapsedMilliseconds > _maxTime.Value)
                 {
                     return score;
                 }

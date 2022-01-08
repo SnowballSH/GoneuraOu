@@ -2,7 +2,7 @@
 
 Decent UCI Minishogi (5x5 shogi) Engine
 
-Current Strength: Around **2100 ELO** (Blitz & up), 1800 ELO (Bullet)
+Current Strength: Around **2150 ELO**
 
 ## Technology
 
@@ -54,7 +54,42 @@ Technologies used to build this engine: (crossed-out means in the future)
 
 Games during development progress:
 
-Defeats Fairy-Stockfish 1900 ELO (From now on, evaluation will be provided.):
+Jan 8 2022
+
+Beats Fairy-Stockfish 2000 ELO in bullet (bullet 0.5+0)
+
+```
+[White "GoneuraOu"]
+[Black "Fairy-Stockfish 2000 ELO"]
+[Result "1-0"]
+[TimeControl "40/30"]
+[Variant "minishogi"]
+
+1. Sb2 {+0.08/13 1.5s} Sb4 {+0.76/18 3.5s} 2. Bc2 {+1.76/13 1.4s}
+Bc4 {+0.51/17 1.9s} 3. Rd1 {+1.76/11 1.3s} Be2 {+0.53/18 2.1s}
+4. Rd2 {+1.65/12 1.3s} Bc4 {-0.23/17 2.8s} 5. Rd1 {+1.76/12 1.2s}
+Be2 {+0.07/18 2.5s} 6. Rd2 {+1.65/12 1.1s} Bc4 {-0.38/16 0.87s}
+7. Rd1 {+1.76/12 1.1s} Rc5 {0.00/18 2.2s} 8. Ba4 {+1.37/11 1.0s}
+Be2 {+0.76/18 1.9s} 9. Rd2 {+1.57/13 0.97s} Pe3 {+0.23/16 0.63s}
+10. Bc2 {+1.96/11 0.92s} Gc4 {-1.61/16 1.7s} 11. Gc1 {+3.43/12 0.88s}
+Rd5 {-1.61/15 1.5s} 12. Rxd5 {+6.09/10 0.83s} Kxd5 {-2.07/15 0.17s}
+13. R@e4 {+5.59/10 0.79s} R@e1 {-1.61/15 1.3s} 14. Rxe3 {+4.44/10 0.75s}
+Gd4 {-1.07/14 0.86s} 15. Rxe2 {+3.88/10 0.71s} Rxe2 {-0.46/12 0.98s}
+16. P@d3 {+5.93/8 0.68s} Gc3 {-1.69/14 0.84s} 17. Sxc3 {+7.75/9 0.64s}
+Sxc3 {-7.30/11 0.24s} 18. G@d4 {+7.85/8 0.61s} Sxd4 {-9.46/11 0.35s}
+19. Pxd4 {+8.90/8 0.58s} Ke5 {-10.76/11 0.65s} 20. B@c4 {+10.57/9 0.55s}
+R@c5 {-8.30/10 0.54s} 21. Bxe2 {+18.50/9 0.52s} S@e4 {-22.84/13 0.45s}
+22. S@c4 {+22.62/9 0.50s} Rxc4 {-M22/10 0.37s} 23. R@a5 {+22.61/9 0.47s}
+S@c5 {-17.23/9 0.15s} 24. Bxc4 {+29.62/10 0.45s} Kxd4 {-M18/15 0.17s}
+25. Bb5+ {+28.16/8 0.43s} G@c4 {-M10/13 0.090s} 26. R@e1 {+29.77/8 0.41s}
+Kd5 {-M10/13 0.071s} 27. +Bxc4 {+M7/9 0.070s} Kxc4 {-M6/32 0.027s}
+28. Rxe4 {+M5/7 0.30s} Kd5 {-M4/157 0.037s} 29. G@d4 {+M1/3 0.002s, Sente mates}
+1-0
+```
+
+Jan 7 2022
+
+Defeats Fairy-Stockfish 1900 ELO (blitz 2+1):
 
 ```
 [White "Fairy-Stockfish 1900 ELO"]

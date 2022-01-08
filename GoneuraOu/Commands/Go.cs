@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Threading;
 using GoneuraOu.Board;
 using GoneuraOu.Search;
 
@@ -7,7 +8,7 @@ namespace GoneuraOu.Commands
 {
     public static class Go
     {
-        public static void DoGo(this Protocol proto, string[] tokens)
+        public static Thread? DoGo(this Protocol proto, string[] tokens)
         {
             Debug.Assert(tokens[0] == "go");
 
@@ -28,7 +29,7 @@ namespace GoneuraOu.Commands
 
                     case "perft":
                         Perft.PerftRootPrint(proto.CurrentPosition, uint.Parse(tokens[index]));
-                        return;
+                        return null;
 
                     case "wtime":
                         if (proto.CurrentPosition.CurrentTurn == Turn.Sente)
@@ -56,11 +57,16 @@ namespace GoneuraOu.Commands
                 }
             }
 
+            StopSearch.Stop = false;
             var searcher = new Searcher();
 
-            searcher.DoSearch(proto.CurrentPosition, proto.Limit);
+            var th = new Thread(() => searcher.DoSearch(proto.CurrentPosition, proto.Limit));
+
+            th.Start();
 
             GC.Collect();
+
+            return th;
         }
     }
 }

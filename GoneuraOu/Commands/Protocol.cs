@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using GoneuraOu.Evaluation;
 
 namespace GoneuraOu.Commands
@@ -9,6 +10,11 @@ namespace GoneuraOu.Commands
         public ulong? MyTime;
         public uint? MyInc;
         public ulong? MoveTime;
+    }
+
+    public static class StopSearch
+    {
+        public static bool Stop;
     }
 
     public class Protocol
@@ -26,10 +32,11 @@ namespace GoneuraOu.Commands
         {
             Console.Out.Flush();
 
-            Console.WriteLine("GoneuraOu Version 0.1a");
+            Console.WriteLine("GoneuraOu Version 0.1");
 
             TranspositionTable.TranspositionTable.Init(16);
 
+            Thread? mainThread = null;
             var initAttacks = true;
 
             while (true)
@@ -37,6 +44,12 @@ namespace GoneuraOu.Commands
                 var input = Console.In.ReadLine()?.Trim();
                 if (input == null) continue;
                 var tokens = input.Split(' ');
+
+                if (mainThread is {IsAlive: false})
+                {
+                    mainThread = null;
+                }
+
                 switch (tokens[0])
                 {
                     case "isready":
@@ -70,8 +83,16 @@ namespace GoneuraOu.Commands
                         break;
 
                     case "go":
-                        this.DoGo(tokens);
-                        GC.Collect();
+                        if (mainThread == null)
+                        {
+                            mainThread = this.DoGo(tokens);
+                            GC.Collect();
+                        }
+
+                        break;
+
+                    case "stop":
+                        StopSearch.Stop = true;
                         break;
 
                     case "eval":
