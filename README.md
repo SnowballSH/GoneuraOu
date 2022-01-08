@@ -4,6 +4,9 @@ Decent UCI Minishogi (5x5 shogi) Engine
 
 Current Strength: Around **2150 ELO**
 
+### ELO Growth
+![ELO vs. Time](./growth/growth.png)
+
 ## Technology
 
 Technologies used to build this engine: (crossed-out means in the future)
